@@ -42,7 +42,7 @@ public class Body extends Component {
 	private short layer = 256;
 	
 	// A reference to the shape
-	private Shape shape;
+	private ArrayList<Shape> shapes = new ArrayList<Shape>();
 	
 	// A quick reference to the transform
 	private Transform transform;
@@ -98,7 +98,7 @@ public class Body extends Component {
 	 * @param bounce The bounce factor of your new body
 	 */
 	public Body(Shape shape, float mass, float friction, float bounce) {
-		this.shape = shape;
+		this.shapes.add(shape);
 		setMass(mass);
 		setFriction(friction);
 		setBounce(bounce);
@@ -173,7 +173,7 @@ public class Body extends Component {
 	 * @return THE shape
 	 */
 	public Shape getShape() {
-		return shape;
+		return shapes.get(0);
 	}
 	
 	/**
@@ -434,5 +434,9 @@ public class Body extends Component {
 
 	public void setTag(String tag) {
 		this.tag = tag;
+	}
+	
+	public ArrayList<Shape> getShapes() {
+		return shapes;
 	}
 }

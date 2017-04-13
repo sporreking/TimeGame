@@ -12,7 +12,7 @@ import sk.gfx.Renderer;
 import sk.gfx.Transform;
 import sk.util.io.Keyboard;
 
-public class Parallax implements GameState {
+public class ParallaxState implements GameState {
 
 	Root root = new Root();
 	Entity playLayerFloor = new Entity();
