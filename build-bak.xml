@@ -1,0 +1,61 @@
+<project name="Ham Pie Engine Game" default="BuildAll" basedir="/home/ed/Code/Workspace">
+	<description>
+		A project that compiles and replaces HamPieEngine
+		and a game that can be placed in a seperate folder.
+	</description>
+	
+	<!-- GLOBAL VARIABLES -->
+	<!-- The temporary build directory -->
+	<property name="build" location="build"/>
+	<!-- "linux" or "windows" are currently allowed -->
+	<property name="os" location="linux"/>
+	<!-- The source dir of the engine -->
+	<property name="ham-src" location="HamPieEngine/src"/>
+	<property name="ham-lib" location="HamPieEngine/lib/"/>
+	<property name="ham-dest" location="${build}/ham"/>
+	<!-- The source dir of the game -->
+	<property name="game-src" location="TimeGame/src/"/>
+	<property name="game-lib" location="TimeGame/lib/"/>
+	<property name="game-dest" location="${build}/game"/>
+	<!-- The destination of the engine jar -->
+	<property name="ham-jar" location="${game-lib}/jar/HamPieEngine.jar"/>
+	<!-- The engine javadoc target -->
+	<property name="ham-doc" location="${game-lib}/doc/HamPieEngine - Javadoc.zip"/>
+	<property name="ham-doc-dir" location="${build}/doc"/>
+	
+	
+	<target name="Init">
+		<mkdir dir="${build}"/>
+		<mkdir dir="${ham-dest}"/>
+		<mkdir dir="${game-dest}"/>
+		<mkdir dir="${ham-doc-dir}"/>
+	</target>
+	
+	<target name="BuildEngine" depends="Init">
+		<javac target="1.8" srcdir="${ham-src}" destdir="${ham-dest}" executable="yes">
+			<classpath>
+				<pathelement path="${ham-lib}/jar/lwjgl.jar"/>
+				<pathelement path="${ham-lib}/jar/SKNet.jar"/>
+				<pathelement path="${ham-lib}/jar/objenesis-2.2.jar"/>
+			</classpath>
+		</javac>
+		<jar destfile="${ham-jar}" basedir="${ham-dest}"></jar>
+		<javadoc sourcepath="${ham-src}" destdir="${ham-doc-dir}"></javadoc>
+		<zip destfile="${ham-doc}" basedir="${ham-doc-dir}"></zip>
+	</target>
+	
+	<target name="BuildAll" depends="BuildEngine">
+		<!--
+		<javac target="1.8" srcdir="${game-src}" destdir="${game-dest}" executable="yes">
+			<classpath>
+				<pathelement path="${game-lib}/*.jar"/>
+			</classpath>		
+		</javac>
+		-->
+	</target>
+	
+	<target name="Clean">
+		<delete dir="${build}"></delete>
+	</target>
+	
+</project>
