@@ -5,6 +5,7 @@ import sk.entity.component.AABB;
 import sk.game.Window;
 import sk.gfx.Transform;
 import sk.util.io.Mouse;
+import sk.util.vector.Vector3f;
 
 public class GUIButton extends GUIElement {
 
@@ -42,6 +43,24 @@ public class GUIButton extends GUIElement {
 	 * @param mouseButton the button to react to.
 	 */
 	public GUIButton(float anchorX, float anchorY, int offsetX, int offsetY, int width, int height, int mouseButton) {
+		this(anchorX, anchorY, offsetX, offsetY, width, height, 0, new Vector3f(), "");
+	}
+	
+	/**
+	 * 
+	 * Creates a new GUI button.
+	 * 
+	 * @param anchorX the x-coordinate of this GUI element's anchor point. 
+	 * @param anchorY the y-coordinate of this GUI element's anchor point.
+	 * @param offsetX the x-axis offset in pixels from the anchor point.
+	 * @param offsetY the y-axis offset in pixels from the anchor point.
+	 * @param width the width of this GUI element in pixels.
+	 * @param height the height of this GUI element in pixels.
+	 * @param mouseButton the button to react to.
+	 * @param textColor the color the text should have.
+	 * @param text the text that should display over the button.
+	 */
+	public GUIButton(float anchorX, float anchorY, int offsetX, int offsetY, int width, int height, int mouseButton, Vector3f textColor, String text) {
 		super(anchorX, anchorY, offsetX, offsetY, width, height);
 		this.mouseButton = mouseButton;
 	}

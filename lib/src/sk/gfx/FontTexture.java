@@ -3,6 +3,8 @@ package sk.gfx;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 
 import sk.util.vector.Vector3f;
@@ -88,6 +90,9 @@ public class FontTexture extends Texture {
 		Color.RGBtoHSB((int) Math.floor(color.x * 255),
 				(int) Math.floor(color.y * 255), (int) Math.floor(color.z * 255), hsb);
 		
+		((Graphics2D) gfx).setRenderingHint(
+				RenderingHints.KEY_TEXT_ANTIALIASING,
+				RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
 		gfx.setColor(Color.getHSBColor(hsb[0], hsb[1], hsb[2]));
 		gfx.setFont(font);
 		gfx.drawString(text, x, y);

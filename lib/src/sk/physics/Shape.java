@@ -1,10 +1,12 @@
 package sk.physics;
 
 import java.util.ArrayList;
+
 import sk.entity.Component;
 import sk.gfx.Transform;
 import sk.gfx.Vertex2D;
 import sk.util.vector.Vector2f;
+import sk.util.vector.Vector3f;
 
 /**
  * A shape is an object that needs a body
@@ -23,6 +25,10 @@ public class Shape {
 	
 	private Vector2f[] points;
 	private Vector2f[] normals;
+	
+	// A vector that points from the center of the body, to the center of the shape
+	// (The body is always at 0, 0
+	private Vector2f center;
 	
 	private float broadPhaseLength = 0.0f;
 	
@@ -108,18 +114,46 @@ public class Shape {
 		// We don't want multiple of the same normals, so we calculate them on the fly
 		ArrayList<Vector2f> normals = new ArrayList<Vector2f>();
 		Vector2f edge = new Vector2f();
+
+		if (points.length < 3) {
+			throw new IllegalArgumentException("There must be more than two points in a polygon... Shame on you!");
+		}
+		
+		// Calculate the center
+		center = new Vector2f();
+		for (Vector2f p : points) {
+			center.add(p);		
+		}
+		center.scale(1.0f / (float) points.length);
+		System.out.print("Center: ");
+		System.out.println(center);
+		
+		// Subtract the center from each point so it's centerd
+		for (Vector2f p : points) {
+			p.sub(center);
+		}
+		
+		// Calculate the direction to loo through them
+		Vector2f edgeA = points[points.length - 1].clone().sub(points[0]);
+		Vector2f edgeB = points[1].clone().sub(points[0]);
+		
+		boolean rightHand = edgeA.x * edgeB.y - edgeB.x * edgeA.y < 0;
 		
 		for (int i = 0; i < points.length; i++) {
 			Vector2f.sub(points[(i + 1) % points.length], points[i], edge);
 			
 			// Check if the current point is further away then the current
-			float currentLength = points[i].length();
-			if (broadPhaseLength < currentLength) {
-				broadPhaseLength = currentLength; 
-			}
+			float length = points[i].length();
+			broadPhaseLength = Math.max(length, broadPhaseLength);
 			
 			// Calculated of 90 degree rotation matrix
-			Vector2f normal = new Vector2f(-edge.y, edge.x);
+			
+			Vector2f normal;
+			if (rightHand) {
+				normal = new Vector2f(-edge.y, edge.x);
+			} else {
+				normal = new Vector2f(edge.y, -edge.x);
+			}
 			normal.normalise();
 			int j = 0;
 			for (; j < normals.size(); j++) {
@@ -133,11 +167,8 @@ public class Shape {
 			}
 		}
 		
-		// Copy them over
 		this.normals = new Vector2f[normals.size()];
-		for (int i = 0; i < this.normals.length; i++) {
-			this.normals[i] = normals.get(i);
-		}
+		normals.toArray(this.normals);
 	}
 	
 	/**
@@ -147,6 +178,25 @@ public class Shape {
 		broadPhaseLength = 0.0f;
 		for (Vector2f p : points) {
 			broadPhaseLength = Math.max(broadPhaseLength, Math.abs(p.length()));
+		}
+	}
+	
+	/**
+	 * Returns the center position
+	 * @return the position
+	 */
+	public Vector2f getCenter(Transform t) {
+		return new Vector2f(center.x * t.scale.x, center.y * t.scale.y).add(t.position);
+	}
+	
+	public void _draw(Transform t, Vector3f color) {
+		Vector2f dot;
+		for (Vector2f p : points) {
+			dot = p.clone().add(center);
+			dot.x *= t.scale.x;
+			dot.y *= t.scale.y;
+			dot = Vector2f.rotate(dot, t.rotation, null);
+			dot.add(t.position);
 		}
 	}
 	

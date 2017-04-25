@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import sk.entity.Component;
 import sk.gfx.Transform;
 import sk.util.vector.Vector2f;
+import sk.util.vector.Vector3f;
 
 /**
  * A Body is a particle in space
@@ -42,7 +43,7 @@ public class Body extends Component {
 	private short layer = 256;
 	
 	// A reference to the shape
-	private Shape shape;
+	private ArrayList<Shape> shapes = new ArrayList<Shape>();
 	
 	// A quick reference to the transform
 	private Transform transform;
@@ -54,7 +55,7 @@ public class Body extends Component {
 	private ArrayList<CollisionData> collisions = new ArrayList<CollisionData>();
 	
 	/**
-	 * Initalizes the body to a default state of
+	 * Initializes the body to a default state of
 	 * 1.0 Mass, 1.0 Friction and 1.0 Bounce (Elasticity)
 	 * 
 	 * @param shape The shape you want to use as collider
@@ -62,6 +63,18 @@ public class Body extends Component {
 	 */
 	public Body(Shape shape) {
 		this(shape, 1.0f, 1.0f, 1.0f);
+	}
+
+	/**
+	 * Creates a body that can be set to dynamic or static
+	 * @param shape The shape of the body.
+	 * @param isDynamic If the body should be dynamic
+	 * @param friction The friction for the body
+	 * @param bounce The bounce for the body
+	 */
+	public Body(Shape shape, boolean isDynamic, float friction, float bounce) {
+		this(shape, 0.0f, friction, bounce);
+		this.setDynamic(isDynamic);
 	}
 	
 	/**
@@ -98,11 +111,24 @@ public class Body extends Component {
 	 * @param bounce The bounce factor of your new body
 	 */
 	public Body(Shape shape, float mass, float friction, float bounce) {
-		this.shape = shape;
+		this.shapes.add(shape);
 		setMass(mass);
 		setFriction(friction);
 		setBounce(bounce);
-		World.addBody(this);
+	}
+	
+	public void _draw() {
+		for (Shape s : shapes) {
+			s._draw(transform, new Vector3f(0.5f, 0.0f, 1.0f));
+		}
+	}
+	
+	/**
+	 * Decouples the body from the entity component system, so an entity isn't needed
+	 * @param transform The new transform you want the body to have when it isn't dependent on a parent
+	 */
+	public void decoupple(Transform transform) {
+		this.transform = transform;
 	}
 
 	/**
@@ -137,6 +163,47 @@ public class Body extends Component {
 	}
 	
 	/**
+	 * Dots against a vector and returns the max.
+	 * 
+	 * @param normal The normal you wish to dot
+	 * @return The maximum dot of all the normals in the collisions
+	 */
+	public float dotCollisionNormals(Vector2f normal) {
+		float maxDot = Float.MIN_VALUE;
+		for (CollisionData c : collisions) {
+			maxDot = Math.max((float) maxDot, (float) c.normal.dot(normal));
+		}
+		return maxDot;
+	}
+	
+	/**
+	 * Loops through all collisions and returns the deepest
+	 * @return the deepest collision depth
+	 */
+	public float getMaxCollisionDepth() {
+		float maxDepth = Float.MIN_VALUE;
+		for (CollisionData c : collisions) {
+			maxDepth = Math.max((float) maxDepth, (float) c.collisionDepth);
+		}
+		return maxDepth;
+	}
+	
+	/**
+	 * Loops through the collisions and checks if any of them
+	 * are deeper than the supplied value
+	 * @param value the largest collision depth which returns true
+	 * @return if there was a collision that deep
+	 */
+	public boolean hasDeepCollision(float value) {
+		for (CollisionData c : collisions) {
+			if (value < c.collisionDepth) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
 	 * If there is any collision with the tag at all.
 	 * 
 	 * @param tag The tag you want to search for
@@ -164,6 +231,7 @@ public class Body extends Component {
 			c.other = c.a;
 		}
 		
+		
 		collisions.add(c);
 	}
 	
@@ -173,7 +241,7 @@ public class Body extends Component {
 	 * @return THE shape
 	 */
 	public Shape getShape() {
-		return shape;
+		return shapes.get(0);
 	}
 	
 	/**
@@ -266,10 +334,17 @@ public class Body extends Component {
 	
 	/**
 	 * (Note that velocity by definition is a vector)
-	 * @return Returns the velocity of the body.
+	 * @return the velocity of the body.
 	 */
 	public Vector2f getVelocity() {
 		return velocity.clone();
+	}
+	
+	/**
+	 * v + F / m 
+	 */
+	public Vector2f getNextVelocity() {
+		return getVelocity().add(force.clone().scale(invertedMass));
 	}
 	
 	/**
@@ -434,5 +509,29 @@ public class Body extends Component {
 
 	public void setTag(String tag) {
 		this.tag = tag;
+	}
+
+	public int getNumberOfShapes() {
+		return shapes.size();
+	}
+	
+	/**
+	 * Note: You cannot add the same shape twice
+	 * @param shape the shape you wish to add
+	 * @return if the shape was added or not
+	 */
+	public boolean addShape(Shape shape) {
+		for (Shape s : shapes) {
+			if (s == shape) {
+				return false;
+			}
+		}
+		
+		shapes.add(shape);
+		return true;
+	}
+	
+	public ArrayList<Shape> getShapes() {
+		return shapes;
 	}
 }

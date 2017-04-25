@@ -211,4 +211,13 @@ public class Root extends Node {
 		priorities.clear();
 		nodes.clear();
 	}
+
+	/**
+	 * Calls a get, but automatically casts it to an entity
+	 * @param string the name of the entity
+	 * @return the node casted to an entity
+	 */
+	public Entity gete(String string) {
+		return (Entity) get(string);
+	}
 }
