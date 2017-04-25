@@ -122,7 +122,7 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
 	 * Negate a vector
 	 * @return this
 	 */
-	public Vector negate() {
+	public Vector2f negate() {
 		x = -x;
 		y = -y;
 		return this;

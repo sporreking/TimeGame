@@ -17,6 +17,8 @@ public class GUIElement extends Renderer {
 	protected int width;
 	protected int height;
 	
+	protected GUIText text;
+	
 	/**
 	 * Creates a new GUI element, and attaches it to the screen.
 	 * 
@@ -37,6 +39,8 @@ public class GUIElement extends Renderer {
 		this.offsetY = offsetY;
 		this.width = width;
 		this.height = height;
+		
+		text = null;
 		
 		updateTransform();
 	}
@@ -81,10 +85,16 @@ public class GUIElement extends Renderer {
 		transform.position.y += dy;
 	}
 	
-	@Override	
-	public void update(double delta) {
-		
+	/**
+	 * Adds or changes the text that is displayed on top of this GUI
+	 * @param text the new GUIText
+	 */
+	public void setText(GUIText text) {
+		this.text = text;
 	}
+	
+	@Override	
+	public void update(double delta) {}
 	
 	@Override
 	public void draw() {
@@ -98,6 +108,11 @@ public class GUIElement extends Renderer {
 		
 		//Bind the texture
 		getTexture().bind(0);
+
+		//Binds the text if it is available
+		if (text != null) {
+			text.bind();
+		}
 		
 		getMesh().draw();
 	}
