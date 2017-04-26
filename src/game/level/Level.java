@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
+import player.Player;
 import sk.entity.Container;
 import sk.entity.Entity;
 import sk.entity.Node;
@@ -31,9 +32,9 @@ public class Level extends Node {
 	public World[] worlds;
 	public Body[] terrain;
 	
-	public Entity player;
+	public Player player;
 	
-	public Level(Entity player, LevelData... levelData) {
+	public Level(Player player, LevelData... levelData) {
 		this.player = player;
 		this.data = levelData;
 		
@@ -42,7 +43,7 @@ public class Level extends Node {
 		
 		for(int i = 0; i < worlds.length; i++) {
 			worlds[i] = new World();
-			worlds[i].gravity = new Vector2f(0, -1f);
+			worlds[i].gravity = new Vector2f(0, -2.5f);
 		}
 		
 		chunks = new Chunk[2][data[0].chunksY][data[0].chunksX];
