@@ -1,5 +1,6 @@
 package player;
 
+import game.level.Chunk;
 import sk.entity.Entity;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
@@ -14,7 +15,7 @@ public class Player extends Entity {
 	int height = 12;
 	int width = 8;
 
-	final float SCALE = 1f / 128;
+	final float SCALE = 1f / Chunk.SIZE;
 
 	boolean isBoy;
 	
@@ -29,12 +30,13 @@ public class Player extends Entity {
 		transform = new Transform();
 		transform.scale.x = width * SCALE; 
 		transform.scale.y = height * SCALE;
-		body = new Body(new Shape(new Vector2f[] {
+		transform.position.x = .1f;
+		body = new Body(1, 0, 0, new Shape(new Vector2f[] {
 				new Vector2f(-0.5f,  0.5f),
 				new Vector2f( 0.5f,  0.5f),
 				new Vector2f( 0.5f, -0.5f),
 				new Vector2f(-0.5f, -0.5f)
-				}), 1, 0, 0);
+				}));
 		movement = new Movement(isBoy);
 		renderer = new Renderer(Mesh.QUAD).setTexture(new Texture("res/texture/wood.png"));
 		

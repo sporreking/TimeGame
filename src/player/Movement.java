@@ -6,6 +6,7 @@ import sk.util.vector.Vector2f;
 
 import org.lwjgl.glfw.GLFW;
 
+import game.level.Level;
 import sk.entity.Component;
 
 public class Movement extends Component {
@@ -20,9 +21,9 @@ public class Movement extends Component {
 	private float maxFallSpeed = 4.0f;
 	private float jump = 1f;
 	private float fallSpeedup = 0.5f;
-	private float groundThreshold = 0.6f;
+	private float groundThreshold = 0f;
 	
-	private float groundFriction = 0.1f;
+	private float groundFriction = 0.5f;
 	private float airFriction = 0.9f;
 	
 	private boolean isBoy;
@@ -33,6 +34,8 @@ public class Movement extends Component {
 	private int keyJump;
 	private int keyDown;
 	private int keySwitch;
+	
+	private Level level;
 	
 	public Movement() {
 		this(false);
@@ -80,7 +83,7 @@ public class Movement extends Component {
 		}
 		
 		if (Keyboard.pressed(keySwitch)) {
-			System.out.println("SWOOSH!");
+			level.switchTime();
 		}
 
 		System.out.println(grounded);
@@ -102,7 +105,7 @@ public class Movement extends Component {
 			sum.y = jump;
 		}
 		
-		System.out.println(sum);
+//		System.out.println(sum);
 		
 		body.setVelocity(sum);
 	}
@@ -113,5 +116,13 @@ public class Movement extends Component {
 
 	public void setBoy(boolean isBoy) {
 		this.isBoy = isBoy;
+	}
+	
+	public void setLevel(Level level) {
+		this.level = level;
+	}
+	
+	public Level getLevel() {
+		return level;
 	}
 }
