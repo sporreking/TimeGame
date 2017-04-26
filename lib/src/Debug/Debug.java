@@ -24,7 +24,7 @@ import sk.util.vector.Vector3f;
 
 public class Debug {
 	
-	public static boolean DEBUG = false;
+	private static boolean debugMode = false;
 	
 	private static ArrayList<Vector2f> points;
 	private static ArrayList<Vector3f> pointColors;
@@ -40,6 +40,10 @@ public class Debug {
 		lineColors = new ArrayList<>();
 	}
 	
+	public static void setDebugMode(boolean mode) {
+		debugMode = mode;
+	}
+	
 	public static void drawPoint(float x, float y) {
 		drawPoint(new Vector2f(x, y));
 	}
@@ -49,9 +53,29 @@ public class Debug {
 	}
 	
 	public static void drawPoint(Vector2f point, Vector3f color) {
-		if (!DEBUG) return;
+		if (!debugMode) return;
 		points.add(point);
 		pointColors.add(color);
+	}
+	
+	public static void drawCircle(Vector2f center, float r) {
+		drawCircle(center, r, new Vector3f(0, 1, 0));
+	}
+	
+	public static void drawCircle(Vector2f center, float r, Vector3f color) {
+		int steps = 16;
+		float angle = (float) (2 * Math.PI / steps);
+		Vector2f arm = new Vector2f(r, 0);
+		Vector2f last = null;
+		Vector2f curr = null;
+		
+		for (int i = 0; i < (steps + 1); i++) {
+			curr = center.clone().add(arm.clone().rotate(angle * i));
+			if (last != null) {
+				drawLine(curr, last, color);
+			}
+			last = curr;
+		}
 	}
 	
 	public static void drawLine(Vector2f pointA, Vector2f pointB) {
@@ -59,7 +83,7 @@ public class Debug {
 	}
 	
 	public static void drawLine(Vector2f pointA, Vector2f pointB, Vector3f color) {
-		if (!DEBUG) return;
+		if (!debugMode) return;
 		lines.add(pointA);
 		lines.add(pointB);
 		lineColors.add(color);
@@ -77,7 +101,7 @@ public class Debug {
 	}
 	
 	public static void draw() {
-		if (!DEBUG) return;
+		if (!debugMode) return;
 		
 		ShaderProgram.ORTHO.use();
 		ShaderProgram.ORTHO.send1i("uses_color", 1);

@@ -1,9 +1,9 @@
 package sk.physics;
 
+
 import sk.game.Time;
 import sk.gfx.Transform;
 import sk.util.vector.Vector2f;
-import sk.util.vector.Vector3f;
 
 /**
  * A class that handles collision information,
@@ -74,8 +74,8 @@ public class CollisionData {
 	 */
 	public static CollisionData SATtest(Shape a, Transform ta, Shape b, Transform tb) {
 		Vector2f distance = Vector2f.sub(
-				a.getCenter(ta), 
-				b.getCenter(tb), 
+				a.getCenter(ta),
+				b.getCenter(tb),
 				null);
 		
 		
@@ -96,13 +96,13 @@ public class CollisionData {
 			n = normals[i];
 			n = Vector2f.rotate(n, i < split ? ta.rotation : tb.rotation, null);
 			
-			// Cast along the normal			
+			// Cast along the normal
 			if (n.dot(distance) < 0.0f) {
 				max = a.castAlongMax(n, ta);
-				min = -b.castAlongMin(n, tb);	
+				min = -b.castAlongMin(n, tb);
 			} else {
 				max = b.castAlongMax(n, tb);
-				min = -a.castAlongMin(n, ta);				
+				min = -a.castAlongMin(n, ta);
 			}
 			
 			dotDistance = Math.abs(Vector2f.dot(distance, n));
@@ -147,7 +147,7 @@ public class CollisionData {
 	 * 
 	 * This applies friction and bounce to all objects
 	 */
-	public void solve() {
+	public void solve(float delta) {
 		// If both bodies are dynamic
 		boolean dynamicCollision = a.isDynamic();
 			
@@ -172,7 +172,6 @@ public class CollisionData {
 		
 		float normalVelocity = Vector2f.dot(relativeVelocity, normal);
 		// Make sure we're not moving away, if we are, just return
-		System.out.println(normalVelocity);
 		if (0.0f > normalVelocity) return;
 		
 		// Bounce
@@ -192,7 +191,7 @@ public class CollisionData {
 		// Friction
 		float mu = Math.min(a.getFriction(), b.getFriction());
 		if (mu == 0.0f) return;
-		float frictionImpulse = (float) Math.abs(bounceImpulse * mu * Time.getDelta());
+		float frictionImpulse = (float) Math.abs(bounceImpulse * mu * delta);
 		float totalMass = dynamicCollision ? a.getMass() + b.getMass() : b.getMass();
 		// Super fast manual rotation and creation
 		Vector2f tangent = new Vector2f(normal.y, -normal.x);

@@ -182,7 +182,7 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
 	}
 	
 	/**
-	 * Rotates a vector by the specified angle in radians
+	 * Rotates a vector by the specified angle in radians.
 	 * @param in The vector to rotate
 	 * @param angle The angle to rotate the in vector by
 	 * @param dest The vector to store the result in
@@ -196,6 +196,18 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
 		dest.x = (float) ( in.x * Math.cos(angle) - in.y * Math.sin(angle));
 		dest.y = (float) ( in.x * Math.sin(angle) + in.y * Math.cos(angle));			
 		return dest;
+	}
+	
+	/**
+	 * Rotates a vector by the specified angle in radians.
+	 * @param angle the angle you want to rotate.
+	 * @return the rotated version of itself.
+	 */
+	public Vector2f rotate(float angle) {
+		Vector2f out = rotate(this, angle, null);
+		this.x = out.x;
+		this.y = out.y;
+		return this;
 	}
 
 	/**
@@ -374,4 +386,6 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
 	public float dot(Vector2f other) {
 		return this.x * other.x + this.y * other.y;
 	}
+
+
 }
