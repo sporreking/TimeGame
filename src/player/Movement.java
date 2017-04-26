@@ -1,30 +1,36 @@
 package player;
 
 import sk.physics.Body;
+import sk.physics.Collision;
 import sk.util.io.Keyboard;
 import sk.util.vector.Vector2f;
 
 import org.lwjgl.glfw.GLFW;
 
 import game.level.Level;
+import sk.debug.Debug;
 import sk.entity.Component;
 
 public class Movement extends Component {
+	
+	private static final Vector2f UP = new Vector2f(0, 1);
 	
 	private Body body;
 	
 	// Should be set to the same as the physics engine
 	private final float TIME_STEP = 1.0f / 60.0f;
+	private float timer = 0;
 	
-	private float acceleration = 20f;
+	private float acceleration = 15f;
 	private float maxSpeed = 0.5f;
 	private float maxFallSpeed = 4.0f;
 	private float jump = 1f;
-	private float fallSpeedup = 0.5f;
-	private float groundThreshold = 0f;
+	private float fallSpeedup = 0.75f;
+	private float groundThreshold = 0.3f;
 	
-	private float groundFriction = 0.5f;
+	private float groundFriction = 0.4f;
 	private float airFriction = 0.9f;
+	private float jumpFriction = 0.75f;
 	
 	private boolean isBoy;
 	private boolean grounded;
@@ -67,47 +73,68 @@ public class Movement extends Component {
 	
 	@Override
 	public void update(double delta) {
-		Vector2f v = new Vector2f();
-		grounded = body.dotCollisionNormals(new Vector2f(0, 1)) > groundThreshold;
+		timer += delta;
+		while (timer > TIME_STEP) {
+			timer -= TIME_STEP;
+			Vector2f v = new Vector2f();
 		
-		if (Keyboard.down(keyLeft)) {
-			v.x -= acceleration * TIME_STEP;
-		}
+			grounded = body.dotCollisionNormals(UP) > groundThreshold;
+			
+			if (Keyboard.down(keyLeft)) {
+				v.x -= acceleration * TIME_STEP;
+			}
+			
+			if (Keyboard.down(keyRight)) {
+				v.x += acceleration * TIME_STEP;
+			}
 		
-		if (Keyboard.down(keyRight)) {
-			v.x += acceleration * TIME_STEP;
-		}
-
-		if (Keyboard.down(keyDown)) {
-			v.y -= fallSpeedup;
-		}
+			if (Keyboard.down(keyDown)) {
+				v.y -= fallSpeedup * TIME_STEP;
+			}
+			
+			if (Keyboard.pressed(keySwitch)) {
+				level.switchTime();
+			}
 		
-		if (Keyboard.pressed(keySwitch)) {
-			level.switchTime();
-		}
-
-		System.out.println(grounded);
-		float friction = grounded ? groundFriction : airFriction;
-		Vector2f sum = Vector2f.add(v, 
-				new Vector2f(body.getVelocity().x * friction,
-						Math.min(body.getVelocity().y, body.getVelocity().y * (Keyboard.down(keyJump) ? 1 : airFriction))
-				), null);
-
-		if (Math.abs(sum.x) > maxSpeed) {
-			sum.x = Math.signum(sum.x) * maxSpeed;
-		}
+			float friction = grounded ? groundFriction : airFriction;
+			float temp = (Keyboard.down(keyJump) ? 1 : jumpFriction);
+			Vector2f bodyVelocity = body.getVelocity(); 
+			
+			// Add in the velocity we normally have
+			v = Vector2f.add(
+					v, 
+					new Vector2f(bodyVelocity.x * friction, 
+						Math.min(bodyVelocity.y, bodyVelocity.y * temp)
+					), null);
 		
-		if (sum.y < -maxFallSpeed) {
-			sum.y = -maxFallSpeed;
+			if (Math.abs(v.x) > maxSpeed) {
+				v.x = Math.signum(v.x) * maxSpeed;
+			}
+			
+			temp = maxFallSpeed;
+			if (Keyboard.down(keyDown)) {
+				temp += fallSpeedup;
+			}
+			
+			if (v.y < -temp) {
+				v.y = -maxFallSpeed;
+			}
+		
+			if (grounded) {
+				for (Collision c : body.getCollisions()) {
+					if (c.normal.dot(UP) > groundThreshold) {
+						
+					}
+				}
+			}
+			
+			if (Keyboard.pressed(keyJump) && grounded) {
+				v.y = jump;
+			}
+			
+			
+			body.setVelocity(v);
 		}
-		
-		if (Keyboard.pressed(keyJump) && grounded) {
-			sum.y = jump;
-		}
-		
-//		System.out.println(sum);
-		
-		body.setVelocity(sum);
 	}
 
 	public boolean isBoy() {

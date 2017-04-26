@@ -34,8 +34,9 @@ public class Player extends Entity {
 		body = new Body(1, 0, 0, new Shape(new Vector2f[] {
 				new Vector2f(-0.5f,  0.5f),
 				new Vector2f( 0.5f,  0.5f),
-				new Vector2f( 0.5f, -0.5f),
-				new Vector2f(-0.5f, -0.5f)
+				new Vector2f( 0.5f, -0.35f),
+				new Vector2f( 0.0f, -0.5f),
+				new Vector2f(-0.5f, -0.35f)
 				}));
 		movement = new Movement(isBoy);
 		renderer = new Renderer(Mesh.QUAD).setTexture(new Texture("res/texture/wood.png"));

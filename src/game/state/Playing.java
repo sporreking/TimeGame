@@ -6,6 +6,7 @@ import game.level.Level;
 import game.level.LevelLoader;
 import player.Movement;
 import player.Player;
+import sk.debug.Debug;
 import sk.entity.Entity;
 import sk.gamestate.GameState;
 import sk.gfx.Camera;
@@ -18,6 +19,7 @@ import sk.physics.Shape;
 import sk.physics.World;
 import sk.util.io.Keyboard;
 import sk.util.vector.Vector2f;
+import sk.util.vector.Vector3f;
 
 public class Playing implements GameState {
 	
@@ -43,6 +45,8 @@ public class Playing implements GameState {
 	@Override
 	public void draw() {
 		level.draw();
+		//level.terrain[0]._draw();
+		Debug.draw();
 	}
 	
 	@Override
