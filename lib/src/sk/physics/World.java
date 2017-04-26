@@ -2,7 +2,8 @@ package sk.physics;
 
 import java.util.ArrayList;
 
-import sk.game.Time;
+import sk.entity.Entity;
+import sk.gfx.Transform;
 import sk.util.vector.Vector2f;
 
 /**
@@ -14,17 +15,17 @@ import sk.util.vector.Vector2f;
  */
 public class World {
 	
-	static ArrayList<Body> bodies = new ArrayList<Body>();
+	ArrayList<Body> bodies = new ArrayList<Body>();
 	
-	public static Vector2f gravity = new Vector2f(0.001f, 0.1f);
-	public static float stepLength = 1.0f / 60.0f;
-	private static float timer = 0.0f;
+	public Vector2f gravity = new Vector2f(0.0f, -0.5f);
+	public float stepLength = 1.0f / 60.0f;
+	private float timer = 0.0f;
 	
 	/**
 	 * Adds a body to this horrid world of collision
 	 * @param body The body you wish to add
 	 */
-	static public void addBody(Body body) {
+	public void addBody(Body body) {
 		// Make sure there's only one of each body
 		if (bodies.contains(body)) return;
 		bodies.add(body);
@@ -34,7 +35,7 @@ public class World {
 	 * Removes the body from the list of bodies
 	 * @param body The body that should be removed
 	 */
-	static public void removeBody(Body body) {
+	public void removeBody(Body body) {
 		bodies.remove(body);
 	}
 	
@@ -43,7 +44,7 @@ public class World {
 	 * steps forward through the simulation.
 	 * @param delta The time step
 	 */
-	static public void update(double delta) {
+	public void update(double delta) {
 		timer += delta;
 		// Make sure we only step if we need to
 		while (stepLength < timer) {
@@ -67,42 +68,56 @@ public class World {
 					if (!a.isDynamic() && !b.isDynamic()) continue;
 					// Make sure not both are triggers
 					if (a.isTrigger() && b.isTrigger()) continue;
- 					// Check if they're in roughly the same area
-					float bpRange = (float) Math.pow(
-							a.getShape().getBP() * Math.max(
-									a.getTransform().scale.x, 
-									a.getTransform().scale.y) + 
-							b.getShape().getBP() * Math.max(
-									b.getTransform().scale.x, 
-									b.getTransform().scale.y), 2.0f);
-					float distanceSq = Vector2f.sub(a.getTransform().position, b.getTransform().position, null).lengthSquared();
-					if (bpRange <= distanceSq) continue;
-
-					CollisionData c = CollisionData.SATtest(a.getShape(), a.getTransform(), b.getShape(), b.getTransform());
+ 					
 					
-					// If there was a collision, handle it
-					if (c == null) continue;
-					
-					// Add them so that a is static if any of them are static
-					if (b.isDynamic()) {
-						c.a = a;
-						c.b = b;
-					} else {
-						c.a = b;
-						c.b = a;
+					CollisionData c = null;
+					// There are multiple shapes, skip the bread phase and try the bodies
+					Transform ta = a.getTransform();
+					Transform tb = b.getTransform();
+					for (Shape shapeA : a.getShapes()) {
+						for (Shape shapeB : b.getShapes()) {
+							float bpRange = (float) Math.pow(
+									shapeA.getBP(ta) + shapeB.getBP(tb), 
+									2.0f);
+							
+							float distanceSq = 
+									shapeA.getCenter(ta)
+									.sub(shapeB.getCenter(tb))
+									.lengthSquared();
+							
+							if (bpRange <= distanceSq) continue;
+							c = CollisionData.SATtest(shapeA, ta, shapeB, tb);
+							
+							if (c == null) continue;
+							
+							if (a.isDynamic()) {
+								c.a = b;
+								c.b = a;
+							} else {
+								c.a = a;
+								c.b = b;
+							}
+							
+							// Add their collisions to the bodies
+							a.addCollision(c);
+							b.addCollision(c);
+							
+							// If one of them is a trigger we are done
+							if (a.isTrigger() || b.isTrigger()) return;
+						
+							c.solve(stepLength);
+						}
 					}
-										
-					// Add their collisions to the bodies
-					a.addCollision(c);
-					b.addCollision(c);
-					
-					// If one of them is a trigger we are done
-					if (a.isTrigger() || b.isTrigger()) continue;
-					
-					// Now we just solve the collision and everyone is happy
-					c.solve();
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Adds the entities body to the world
+	 * @param entity the entity you whish to add
+	 */
+	public void addEntity(Entity entity) {
+		addBody(entity.get(Body.class));
 	}
 }

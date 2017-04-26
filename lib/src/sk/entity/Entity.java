@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.TreeMap;
 
 import sk.gfx.Renderer;
+import sk.gfx.Transform;
 
 public class Entity extends Node {
 	
@@ -47,6 +48,18 @@ public class Entity extends Node {
 					return true;
 		
 		return false;
+	}
+	
+	/**
+	 * 
+	 * Adds a new component to this entity.
+	 * Sets the priority to 0.
+	 * 
+	 * @param comp the component to add.
+	 * @return this entity instance.
+	 */
+	public Entity add(Component comp) {
+		return add(0, comp);
 	}
 	
 	/**
@@ -190,4 +203,5 @@ public class Entity extends Node {
 		
 		components.clear();
 	}
+
 }

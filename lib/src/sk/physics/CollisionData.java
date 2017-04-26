@@ -1,5 +1,7 @@
 package sk.physics;
 
+
+import sk.game.Time;
 import sk.gfx.Transform;
 import sk.util.vector.Vector2f;
 
@@ -18,12 +20,14 @@ public class CollisionData {
 	public float collisionDepth = Float.MAX_VALUE;
 	// Which transform is grouped with the normal
 	public Transform normalOwner;
+	// The point of the collision
+	public Vector2f point;
 	// The bodies involved
 	public Body a, b;
 	// The other body
 	public Body other;
 	
-	public static final float INACCURACY = 0.001f;
+	public static float INACCURACY = 0.001f;
 	
 	/**
 	 * Default constructor, new collision objects
@@ -69,8 +73,11 @@ public class CollisionData {
 	 * data for the collision, returns null if no collision
 	 */
 	public static CollisionData SATtest(Shape a, Transform ta, Shape b, Transform tb) {
-		Vector2f distance = new Vector2f();
-		Vector2f.sub(ta.position, tb.position, distance);
+		Vector2f distance = Vector2f.sub(
+				a.getCenter(ta),
+				b.getCenter(tb),
+				null);
+		
 		
 		CollisionData collision = new CollisionData();
 		
@@ -85,18 +92,17 @@ public class CollisionData {
 		Vector2f n;
 		int split = a.getNormals().length;
 
-		
 		for (int i = 0; i < normals.length; i++) {
 			n = normals[i];
 			n = Vector2f.rotate(n, i < split ? ta.rotation : tb.rotation, null);
 			
-			// Cast along the normal			
+			// Cast along the normal
 			if (n.dot(distance) < 0.0f) {
 				max = a.castAlongMax(n, ta);
-				min = -b.castAlongMin(n, tb);	
+				min = -b.castAlongMin(n, tb);
 			} else {
 				max = b.castAlongMax(n, tb);
-				min = -a.castAlongMin(n, ta);				
+				min = -a.castAlongMin(n, ta);
 			}
 			
 			dotDistance = Math.abs(Vector2f.dot(distance, n));
@@ -104,9 +110,12 @@ public class CollisionData {
 			depth = (max + min) - dotDistance;
 						
 			if (0 < depth) {
+				
 				if (depth < collision.collisionDepth) {
 					collision.collisionDepth = depth;
 					collision.normal = n;
+
+					// Calculate the collision point
 					if (i < split) {
 						collision.normalOwner = ta;
 					} else {
@@ -138,7 +147,7 @@ public class CollisionData {
 	 * 
 	 * This applies friction and bounce to all objects
 	 */
-	public void solve() {
+	public void solve(float delta) {
 		// If both bodies are dynamic
 		boolean dynamicCollision = a.isDynamic();
 			
@@ -155,13 +164,11 @@ public class CollisionData {
 		} else {
 			reverse = (Vector2f) normal.clone().scale(collisionDepth - INACCURACY);
 		}
-		
 		b.getTransform().position.add(reverse);
-		
 		
 		// Change the velocity
 		Vector2f relativeVelocity = new Vector2f();
-		Vector2f.sub(a.getVelocity(), b.getVelocity(), relativeVelocity);
+		Vector2f.sub(a.getNextVelocity(), b.getNextVelocity(), relativeVelocity);
 		
 		float normalVelocity = Vector2f.dot(relativeVelocity, normal);
 		// Make sure we're not moving away, if we are, just return
@@ -171,7 +178,6 @@ public class CollisionData {
 		float bounce = Math.min(a.getBounce(), b.getBounce());
 		float bounceImpulse = normalVelocity * (bounce + 1.0f);
 		if (dynamicCollision) {
-			bounceImpulse = normalVelocity * (bounce + 1.0f);
 			bounceImpulse /= a.getInvertedMass() + b.getInvertedMass();
 			Vector2f bounceForce = normal.clone().scale(bounceImpulse);
 			b.addForce(bounceForce.scale(a.getMass()));
@@ -185,7 +191,7 @@ public class CollisionData {
 		// Friction
 		float mu = Math.min(a.getFriction(), b.getFriction());
 		if (mu == 0.0f) return;
-		float frictionImpulse = Math.abs(bounceImpulse * mu);
+		float frictionImpulse = (float) Math.abs(bounceImpulse * mu * delta);
 		float totalMass = dynamicCollision ? a.getMass() + b.getMass() : b.getMass();
 		// Super fast manual rotation and creation
 		Vector2f tangent = new Vector2f(normal.y, -normal.x);

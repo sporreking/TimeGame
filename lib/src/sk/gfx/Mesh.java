@@ -23,6 +23,8 @@ public class Mesh {
 	private int vertexCount;
 	private int indexCount;
 	
+	private int mode = GL_TRIANGLES;
+	
 	/**
 	 * 
 	 * Creates an empty mesh.
@@ -117,9 +119,9 @@ public class Mesh {
 		glBindVertexArray(vao);
 		
 		if(indexCount > 0) {
-			glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+			glDrawElements(mode, indexCount, GL_UNSIGNED_INT, 0);
 		} else {
-			glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+			glDrawArrays(mode, 0, vertexCount);
 		}
 		
 		glBindVertexArray(0);
@@ -135,6 +137,16 @@ public class Mesh {
 		
 		for(int i : vbos)
 			glDeleteBuffers(i);
+	}
+	
+	public int getMode() {
+		return mode;
+	}
+	
+	public Mesh setMode(int mode) {
+		this.mode = mode;
+		
+		return this;
 	}
 	
 	public static final Mesh QUAD;

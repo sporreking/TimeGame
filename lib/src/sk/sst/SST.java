@@ -300,18 +300,18 @@ public final class SST extends Component {
 		 */
 		public void write(ByteBuffer buffer) {
 			
-			buffer.put((byte)type.ordinal());
+			buffer.put((byte)(Object)type.ordinal());
 			buffer.put(tag.getBytes(StandardCharsets.UTF_8));
-			buffer.put((byte)0xFF);
+			buffer.put((byte)(Object)0xFF);
 			
 			switch(type) {
-			case BYTE: buffer.put((byte)data); break;
-			case SHORT: buffer.putShort((short)data); break;
-			case INT: buffer.putInt((int)data); break;
-			case LONG: buffer.putLong((long)data); break;
-			case FLOAT: buffer.putFloat((float)data); break;
-			case DOUBLE: buffer.putDouble((double)data); break;
-			case STRING: buffer.put(((String)data).getBytes(STRING_ENCODING)); buffer.put((byte)(0xFF)); break;
+			case BYTE: buffer.put((byte)(Object)data); break;
+			case SHORT: buffer.putShort((short)(Object)data); break;
+			case INT: buffer.putInt((int)(Object)data); break;
+			case LONG: buffer.putLong((long)(Object)data); break;
+			case FLOAT: buffer.putFloat((float)(Object)data); break;
+			case DOUBLE: buffer.putDouble((double)(Object)data); break;
+			case STRING: buffer.put(((String)(Object)data).getBytes(STRING_ENCODING)); buffer.put((byte)(0xFF)); break;
 			}
 		}
 		
