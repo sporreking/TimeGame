@@ -17,7 +17,7 @@ public class Main {
 		gp.clearColor = new Vector4f();
 		gp.width = 800;
 		gp.height = 600;
-		gp.startState = TG.GS_PARALLAX_TEST;
+		gp.startState = TG.GS_PLAYING;
 		gp.resizable = false;
 		gp.title = "Time Game";
 		gp.vSync = true;
@@ -33,11 +33,5 @@ public class Main {
 		GameShaders.destroyShaders();
 		
 		System.out.println("Game successfully exited");
-	}
-
-	private static Vertex2D Vector2f(float f, float g) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
+	}	
 }

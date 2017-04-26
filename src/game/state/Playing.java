@@ -4,6 +4,8 @@ import org.lwjgl.glfw.GLFW;
 
 import game.level.Level;
 import game.level.LevelLoader;
+import player.Movement;
+import player.Player;
 import sk.entity.Entity;
 import sk.gamestate.GameState;
 import sk.gfx.Camera;
@@ -19,72 +21,22 @@ import sk.util.vector.Vector2f;
 
 public class Playing implements GameState {
 	
-	private Entity player;
+	private Player player;
 	private Level level;
 	
 	@Override
 	public void init() {
-		Camera.DEFAULT.scale.x = .25f;
-		Camera.DEFAULT.scale.y = .25f;
+		Camera.DEFAULT.scale.x = .75f;
+		Camera.DEFAULT.scale.y = .75f;
 		
-		player = new Entity();
-		
-		Transform t_player = new Transform();
-		t_player.scale.set(1f / 128 * 8, 1f / 128 * 12);
-		
-		player.add(0, t_player);
-		player.add(0, new Body(new Shape(new Vector2f[] {
-				new Vector2f(-.5f, .5f),
-				new Vector2f(.5f, .5f),
-				new Vector2f(.5f, -.5f),
-				new Vector2f(-.5f, -.5f)
-		}), 1, 100, 0));
-		player.add(1, new Renderer(Mesh.QUAD).setTexture(new Texture("res/texture/wood.png")));
+		player = new Player(false);
 		
 		level = new Level(player, LevelLoader.load("lvl1_0"), LevelLoader.load("lvl1_1"));
 	}
 	
 	@Override
-	public void update(double delta) {
-		
-		if(Keyboard.down(GLFW.GLFW_KEY_W)) {
-			Camera.DEFAULT.position.y += delta;
-		}
-		
-		if(Keyboard.down(GLFW.GLFW_KEY_S)) {
-			Camera.DEFAULT.position.y -= delta;
-		}
-		
-		if(Keyboard.down(GLFW.GLFW_KEY_A)) {
-			Camera.DEFAULT.position.x -= delta;
-		}
-		
-		if(Keyboard.down(GLFW.GLFW_KEY_D)) {
-			Camera.DEFAULT.position.x += delta;
-		}
-		
-		if(Keyboard.pressed(GLFW.GLFW_KEY_UP)) {
-			player.get(Body.class).addForce(new Vector2f(0, .5f));
-		}
-		
-		if(Keyboard.down(GLFW.GLFW_KEY_DOWN)) {
-			player.get(Body.class).addForce(new Vector2f(0, -(float) (2f * delta)));
-		}
-		
-		if(Keyboard.down(GLFW.GLFW_KEY_LEFT)) {
-			Vector2f v = player.get(Body.class).getVelocity();
-			v.x = (float) (-.5f);
-			player.get(Body.class).setVelocity(v);
-		}
-		
-		if(Keyboard.down(GLFW.GLFW_KEY_RIGHT)) {
-			Vector2f v = player.get(Body.class).getVelocity();
-			v.x = (float) (.5f);
-			player.get(Body.class).setVelocity(v);
-		}
-		
-		Camera.DEFAULT.position = player.get(Transform.class).position;
-		
+	public void update(double delta) {		
+		Camera.DEFAULT.position = player.get(Transform.class).position.clone();
 		level.update(delta);
 		player.update(delta);
 	}
