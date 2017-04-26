@@ -24,13 +24,13 @@ public class Playing implements GameState {
 	
 	@Override
 	public void init() {
-		Camera.DEFAULT.scale.x = .5f;
-		Camera.DEFAULT.scale.y = .5f;
+		Camera.DEFAULT.scale.x = .25f;
+		Camera.DEFAULT.scale.y = .25f;
 		
 		player = new Entity();
 		
 		Transform t_player = new Transform();
-		t_player.scale.set(.1f, .1f);
+		t_player.scale.set(1f / 128 * 8, 1f / 128 * 12);
 		
 		player.add(0, t_player);
 		player.add(0, new Body(new Shape(new Vector2f[] {
@@ -38,7 +38,7 @@ public class Playing implements GameState {
 				new Vector2f(.5f, .5f),
 				new Vector2f(.5f, -.5f),
 				new Vector2f(-.5f, -.5f)
-		}), 1, 1, 0));
+		}), 1, 100, 0));
 		player.add(1, new Renderer(Mesh.QUAD).setTexture(new Texture("res/texture/wood.png")));
 		
 		level = new Level(player, LevelLoader.load("lvl1_0"), LevelLoader.load("lvl1_1"));
@@ -63,21 +63,27 @@ public class Playing implements GameState {
 			Camera.DEFAULT.position.x += delta;
 		}
 		
-		if(Keyboard.down(GLFW.GLFW_KEY_UP)) {
-			player.get(Body.class).addForce(new Vector2f(0, (float) (.1f * delta)));
+		if(Keyboard.pressed(GLFW.GLFW_KEY_UP)) {
+			player.get(Body.class).addForce(new Vector2f(0, .5f));
 		}
 		
 		if(Keyboard.down(GLFW.GLFW_KEY_DOWN)) {
-			player.get(Body.class).addForce(new Vector2f(0, -(float) (.1f * delta)));
+			player.get(Body.class).addForce(new Vector2f(0, -(float) (2f * delta)));
 		}
 		
 		if(Keyboard.down(GLFW.GLFW_KEY_LEFT)) {
-			player.get(Body.class).addForce(new Vector2f(-(float) (.1f * delta), 0));
+			Vector2f v = player.get(Body.class).getVelocity();
+			v.x = (float) (-.5f);
+			player.get(Body.class).setVelocity(v);
 		}
 		
 		if(Keyboard.down(GLFW.GLFW_KEY_RIGHT)) {
-			player.get(Body.class).addForce(new Vector2f((float) (.1f * delta), 0));
+			Vector2f v = player.get(Body.class).getVelocity();
+			v.x = (float) (.5f);
+			player.get(Body.class).setVelocity(v);
 		}
+		
+		Camera.DEFAULT.position = player.get(Transform.class).position;
 		
 		level.update(delta);
 		player.update(delta);
@@ -85,8 +91,8 @@ public class Playing implements GameState {
 	
 	@Override
 	public void draw() {
-		level.draw();
 		player.draw();
+		level.draw();
 	}
 	
 	@Override

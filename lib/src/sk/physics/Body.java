@@ -1,6 +1,7 @@
 package sk.physics;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import sk.entity.Component;
 import sk.gfx.Transform;
@@ -55,6 +56,35 @@ public class Body extends Component {
 	private ArrayList<CollisionData> collisions = new ArrayList<CollisionData>();
 	
 	/**
+	 * Creates a new body with the shapes as shapes. 
+	 * 
+	 * Mass is set to 1, friction is set to 1 and bounce is set to 0.
+	 * 
+	 * @param shapes the shapes you want the body to have.
+	 * @param isDynamic if the body should be dynamic or not.
+	 */
+	public Body(List<Shape> shapes, boolean isDynamic) {
+		this(shapes, isDynamic, 1, 1, 0);
+	}
+	
+	/**
+	 * Creates a new body with the specifications.
+	 * 
+	 * @param shapes the shapes you want the body to have.
+	 * @param isDynamic if the body is dynamic.
+	 * @param mass the mass of the body.
+	 * @param friction the friction of the body.
+	 * @param bounce the bounce of the body. 
+	 */
+	public Body(List<Shape> shapes, boolean isDynamic, float mass, float friction, float bounce) {
+		this(shapes.get(0), mass, friction, bounce);
+		setDynamic(isDynamic);
+		for (int i = 1; i < shapes.size(); i++) {
+			addShape(shapes.get(i));
+		}
+	}
+	
+	/**
 	 * Initializes the body to a default state of
 	 * 1.0 Mass, 1.0 Friction and 1.0 Bounce (Elasticity)
 	 * 
@@ -73,7 +103,7 @@ public class Body extends Component {
 	 * @param bounce The bounce for the body
 	 */
 	public Body(Shape shape, boolean isDynamic, float friction, float bounce) {
-		this(shape, 0.0f, friction, bounce);
+		this(shape, 1.0f, friction, bounce);
 		this.setDynamic(isDynamic);
 	}
 	
@@ -111,12 +141,15 @@ public class Body extends Component {
 	 * @param bounce The bounce factor of your new body
 	 */
 	public Body(Shape shape, float mass, float friction, float bounce) {
-		this.shapes.add(shape);
+		shapes.add(shape);
 		setMass(mass);
 		setFriction(friction);
 		setBounce(bounce);
 	}
 	
+	/**
+	 * Draws all shapes associated with this body.
+	 */
 	public void _draw() {
 		for (Shape s : shapes) {
 			s._draw(transform, new Vector3f(0.5f, 0.0f, 1.0f));
@@ -147,7 +180,7 @@ public class Body extends Component {
 	
 	/**
 	 * Returns a list of all the collisions where the other object
-	 * matchs the tag. 
+	 * matches the tag. 
 	 * 
 	 * @param tag The tag you want to search for
 	 * @return The list of collisions with the tag
@@ -531,6 +564,38 @@ public class Body extends Component {
 		return true;
 	}
 	
+	/**
+	 * Note: You cannot add the same shape twice
+	 * 
+	 * @param shapes the shapes you wish to add
+	 */
+	public Body addShape(List<Shape> shapes) {
+		for (Shape s : shapes) {
+			addShape(s);
+		}
+		return this;
+	}
+	
+	/**
+	 * Removes the shape.
+	 * @param shape the shape you want to remove.
+	 * @return if it succeeded with removing or not.
+	 */
+	public boolean removeShape(Shape shape) {
+		int i = 0;
+		for (; i < shapes.size(); i++) {
+			if (shapes.get(i) == shape) {
+				shapes.remove(i);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Gets the complete list of all shapes on the body.
+	 * @return a list of shapes on the body.
+	 */
 	public ArrayList<Shape> getShapes() {
 		return shapes;
 	}

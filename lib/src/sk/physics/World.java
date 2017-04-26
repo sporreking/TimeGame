@@ -3,10 +3,8 @@ package sk.physics;
 import java.util.ArrayList;
 
 import sk.entity.Entity;
-import sk.game.Time;
 import sk.gfx.Transform;
 import sk.util.vector.Vector2f;
-import sk.util.vector.Vector3f;
 
 /**
  * The World class handles all the collisions in the world, 
@@ -79,17 +77,13 @@ public class World {
 					for (Shape shapeA : a.getShapes()) {
 						for (Shape shapeB : b.getShapes()) {
 							float bpRange = (float) Math.pow(
-									a.getShape().getBP() * Math.max(
-											ta.scale.x, 
-											ta.scale.y) + 
-									b.getShape().getBP() * Math.max(
-											tb.scale.x,
-											tb.scale.y), 2.0f);
-							float distanceSq = Vector2f.sub(
-									shapeA.getCenter(ta),
-									shapeB.getCenter(tb),
-									null).lengthSquared();
+									shapeA.getBP(ta) + shapeB.getBP(tb), 
+									2.0f);
 							
+							float distanceSq = 
+									shapeA.getCenter(ta)
+									.sub(shapeB.getCenter(tb))
+									.lengthSquared();
 							
 							if (bpRange <= distanceSq) continue;
 							c = CollisionData.SATtest(shapeA, ta, shapeB, tb);
@@ -111,7 +105,7 @@ public class World {
 							// If one of them is a trigger we are done
 							if (a.isTrigger() || b.isTrigger()) return;
 						
-							c.solve();
+							c.solve(stepLength);
 						}
 					}
 				}
