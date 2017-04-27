@@ -7,6 +7,7 @@ import sk.gfx.Renderer;
 import sk.gfx.Texture;
 import sk.gfx.Transform;
 import sk.physics.Body;
+import sk.physics.Collision;
 import sk.physics.Shape;
 import sk.util.vector.Vector2f;
 
@@ -38,12 +39,13 @@ public class Player extends Entity {
 				new Vector2f( 0.0f, -0.5f),
 				new Vector2f(-0.5f, -0.35f)
 				}));
+		body.setOnlyOverlap(true);
 		movement = new Movement(isBoy);
 		renderer = new Renderer(Mesh.QUAD).setTexture(new Texture("res/texture/wood.png"));
 		
 		add(transform);
-		add(body);
-		add(movement);
+		add(1, body);
+		add(-1, movement);
 		add(renderer);
 	}
 }
