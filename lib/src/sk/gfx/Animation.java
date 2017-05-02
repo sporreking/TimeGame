@@ -144,6 +144,29 @@ public class Animation extends Component {
 	
 	/**
 	 * 
+	 * Sets the speed of this animation.
+	 * 
+	 * @param speed the new speed.
+	 * @return this animation instance.
+	 */
+	public Animation setSpeed(float speed) {
+		this.speed = speed;
+		
+		return this;
+	}
+	
+	/**
+	 * 
+	 * Returns the current speed of the animation.
+	 * 
+	 * @return the speed of the animation.
+	 */
+	public float getSpeed() {
+		return speed;
+	}
+	
+	/**
+	 * 
 	 * Returns the current frame of this animation.
 	 * 
 	 * @return the current frame.

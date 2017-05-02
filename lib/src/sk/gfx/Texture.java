@@ -15,7 +15,7 @@ import static org.lwjgl.opengl.GL13.*;
 
 public class Texture {
 	
-	private int id;
+	private int id = 0;
 	
 	private int width;
 	private int height;
@@ -75,6 +75,9 @@ public class Texture {
 	 * @return this texture instance.
 	 */
 	public Texture generate(int width, int height, int[] pixels) {
+		
+		if (id != 0)
+			destroy();
 		
 		this.width = width;
 		this.height = height;

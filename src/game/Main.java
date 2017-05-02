@@ -1,7 +1,12 @@
 package game;
+import game.shaders.GameShaders;
 import sk.audio.AudioManager;
 import sk.game.Game;
 import sk.game.GameProperties;
+import sk.gfx.Vertex2D;
+import sk.physics.Body;
+import sk.physics.Shape;
+import sk.util.vector.Vector2f;
 import sk.util.vector.Vector4f;
 
 public class Main {
@@ -12,10 +17,12 @@ public class Main {
 		gp.clearColor = new Vector4f();
 		gp.width = 800;
 		gp.height = 600;
-		gp.startState = TG.GS_MAIN_MENU;
+		gp.startState = TG.GS_PLAYING;
 		gp.resizable = false;
 		gp.title = "Time Game";
 		gp.vSync = true;
+		
+		//Body b = new Body(new Shape(Vector2f(0.0f, 0.0f), Vector2f(0.0f, 0.0f)));
 		
 		System.out.println("Starting game...");
 		
@@ -23,7 +30,8 @@ public class Main {
 		
 		Game.start(gp);
 		
+		GameShaders.destroyShaders();
+		
 		System.out.println("Game successfully exited");
-	}
-	
+	}	
 }

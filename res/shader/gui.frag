@@ -2,8 +2,11 @@
 precision highp float;
 
 uniform bool b_is_fader;
+uniform bool b_has_text;
 uniform float f_value;
+uniform vec4 v_text_color;
 uniform sampler2D t_mask;
+uniform sampler2D t_text;
 uniform sampler2D t_sampler;
 uniform sampler2D t_sampler_on;
 
@@ -25,5 +28,9 @@ void main()
 		//Not a fader
 		out_color = texture2D(t_sampler, pass_texCoords);
 	}
-	//out_color = vec4(pass_texCoords, 0, 1);
+	
+	if (b_has_text) {
+		//There is text here, so it should be the text color
+		out_color = mix(v_text_color, out_color, texture2D(t_text, pass_texCoords).x);
+	}
 }
