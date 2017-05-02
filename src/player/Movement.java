@@ -8,7 +8,6 @@ import sk.util.vector.Vector2f;
 import org.lwjgl.glfw.GLFW;
 
 import game.level.Level;
-import sk.debug.Debug;
 import sk.entity.Component;
 
 public class Movement extends Component {
@@ -33,7 +32,6 @@ public class Movement extends Component {
 	private float jumpFriction = 0.75f;
 	
 	private boolean isBoy;
-	private boolean grounded;
 	
 	private int keyLeft;
 	private int keyRight;
@@ -42,6 +40,7 @@ public class Movement extends Component {
 	private int keySwitch;
 	
 	private Level level;
+	private Player player;
 	
 	public Movement() {
 		this(false);
@@ -61,6 +60,7 @@ public class Movement extends Component {
 	@Override
 	public void init() {
 		body = getParent().get(Body.class);
+		player = (Player) getParent();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -78,7 +78,7 @@ public class Movement extends Component {
 			timer -= TIME_STEP;
 			Vector2f v = new Vector2f();
 		
-			grounded = body.dotCollisionNormals(UP) > groundThreshold;
+			player.grounded = body.dotCollisionNormals(UP) > groundThreshold;
 			
 			if (Keyboard.down(keyLeft)) {
 				v.x -= acceleration * TIME_STEP;
@@ -95,8 +95,19 @@ public class Movement extends Component {
 			if (Keyboard.pressed(keySwitch)) {
 				level.switchTime();
 			}
+			
+			if(Math.abs(v.x) > 0) {
+				player.running = true;
+				player.dir = (int) Math.signum(v.x);
+			} else {
+				player.running = false;
+			}
+			
+			if(!player.grounded) {
+				player.running = false;
+			}
 		
-			float friction = grounded ? groundFriction : airFriction;
+			float friction = player.grounded ? groundFriction : airFriction;
 			float temp = (Keyboard.down(keyJump) ? 1 : jumpFriction);
 			Vector2f bodyVelocity = body.getVelocity(); 
 			
@@ -120,7 +131,7 @@ public class Movement extends Component {
 				v.y = -maxFallSpeed;
 			}
 		
-			if (grounded) {
+			if (player.grounded) {
 				for (Collision c : body.getCollisions()) {
 					if (c.normal.dot(UP) > groundThreshold) {
 						
@@ -128,7 +139,7 @@ public class Movement extends Component {
 				}
 			}
 			
-			if (Keyboard.pressed(keyJump) && grounded) {
+			if (Keyboard.pressed(keyJump) && player.grounded) {
 				v.y = jump;
 			}
 			
