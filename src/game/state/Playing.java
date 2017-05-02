@@ -18,10 +18,11 @@ import sk.physics.Shape;
 import sk.physics.World;
 import sk.util.io.Keyboard;
 import sk.util.vector.Vector2f;
+import sk.util.vector.Vector3f;
 
 public class Playing implements GameState {
 	
-	private Player player;
+	private Player player1, player2;
 	private Level level;
 	
 	@Override
@@ -29,27 +30,27 @@ public class Playing implements GameState {
 		Camera.DEFAULT.scale.x = .75f;
 		Camera.DEFAULT.scale.y = .75f;
 		
-		player = new Player(false);
+		player1 = new Player(true);
+		player2 = new Player(false);
 		
-		level = new Level(player, LevelLoader.load("lvl1_0"), LevelLoader.load("lvl1_1"));
+		level = new Level(player1, player2, LevelLoader.load("lvl1_0"), LevelLoader.load("lvl1_1"));
 	}
 	
 	@Override
-	public void update(double delta) {		
-		Camera.DEFAULT.position = player.get(Transform.class).position.clone();
+	public void update(double delta) {
 		level.update(delta);
-		player.update(delta);
 	}
 	
 	@Override
 	public void draw() {
-		player.draw();
 		level.draw();
+		//level.terrain[0]._draw();
 	}
 	
 	@Override
 	public void exit() {
 		level.destroy();
-		player.destroy();
+		player1.destroy();
+		player2.destroy();
 	}
 }

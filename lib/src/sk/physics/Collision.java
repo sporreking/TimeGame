@@ -1,19 +1,27 @@
 package sk.physics;
 
 
-import sk.game.Time;
 import sk.gfx.Transform;
 import sk.util.vector.Vector2f;
 
 /**
- * A class that handles collision information,
- * it then uses that information to solve the
+ * A class that handles collision information.
+ * It then uses that information to solve the
  * collision.
  * 
  * @author Ed
  * 
  */
-public class CollisionData {
+public class Collision {
+
+	// If you're not getting generated collision
+	// events when bodies are on top of each other,
+	// this is the guy to increase. But if you're
+	// sinking in too much, make it smaller.
+	public static float INACCURACY = 0.001f;
+	
+	// The distance between the two bodies.
+	public Vector2f distance;
 	// The normal
 	public Vector2f normal;
 	// The penetration depth
@@ -26,22 +34,25 @@ public class CollisionData {
 	public Body a, b;
 	// The other body
 	public Body other;
-	
-	public static float INACCURACY = 0.001f;
+	// Some relevant physics variables
+	public float impactForce = 0;
+	public float normalVelocity = 0;
+	public float tangentVelocity = 0;
 	
 	/**
 	 * Default constructor, new collision objects
 	 * shouldn't be created outside of the engines
 	 * collision code. 
 	 */
-	public CollisionData() {}
+	protected Collision() {}
 
 	/**
-	 * Copy constructor
-	 * @param c The CollisionData object you wish to copy
+	 * Copies the specified collision data.
+	 * 
+	 * @param c the CollisionData object you wish to copy from.
 	 * 
 	 */
-	public CollisionData(CollisionData c) {
+	protected Collision(Collision c) {
 		normal = c.normal;
 		collisionDepth = c.collisionDepth;
 		normalOwner = c.normalOwner;
@@ -52,11 +63,12 @@ public class CollisionData {
 	
 	/**
 	 * Fuses two arrays into one. This is used with the collision test and runs
-	 * almost every frame and should thus be well optimized. If you know of 
-	 * improvements let me know
-	 * @param a The first array
-	 * @param b The second array
-	 * @return The combined array
+	 * almost every frame. Thus, it should be be well optimized. If you know of 
+	 * improvements, let me know.
+	 * 
+	 * @param a the first array.
+	 * @param b the second array.
+	 * @return the combined array.
 	 */
 	public static Vector2f[] fuseArrays(Vector2f[] a, Vector2f[] b) {
 		Vector2f[] out = new Vector2f[a.length + b.length];
@@ -66,20 +78,21 @@ public class CollisionData {
 	}
 	
 	/**
-	 * Does a Separate Axis Theorem test on the two shapes
-	 * @param a The first shape you want to check collision against
-	 * @param b The second shape you want to check collision against
-	 * @return The collision object with the appropriate 
-	 * data for the collision, returns null if no collision
+	 * Does a <em>Separate Axis Theorem</em> test on the two shapes.
+	 * 
+	 * @param a the first shape you want to check collision against.
+	 * @param b the second shape you want to check collision against.
+	 * @return the collision object with the appropriate 
+	 * data for the collision, returns null if no collision.
 	 */
-	public static CollisionData SATtest(Shape a, Transform ta, Shape b, Transform tb) {
-		Vector2f distance = Vector2f.sub(
+	public static Collision SATtest(Shape a, Transform ta, Shape b, Transform tb) {
+		Collision c = new Collision();
+		c.distance = Vector2f.sub(
 				a.getCenter(ta),
 				b.getCenter(tb),
 				null);
 		
 		
-		CollisionData collision = new CollisionData();
 		
 		float max;
 		float min;
@@ -97,7 +110,7 @@ public class CollisionData {
 			n = Vector2f.rotate(n, i < split ? ta.rotation : tb.rotation, null);
 			
 			// Cast along the normal
-			if (n.dot(distance) < 0.0f) {
+			if (n.dot(c.distance) < 0.0f) {
 				max = a.castAlongMax(n, ta);
 				min = -b.castAlongMin(n, tb);
 			} else {
@@ -105,21 +118,21 @@ public class CollisionData {
 				min = -a.castAlongMin(n, ta);
 			}
 			
-			dotDistance = Math.abs(Vector2f.dot(distance, n));
+			dotDistance = Math.abs(Vector2f.dot(c.distance, n));
 			// Check along the current axis
 			depth = (max + min) - dotDistance;
 						
 			if (0 < depth) {
 				
-				if (depth < collision.collisionDepth) {
-					collision.collisionDepth = depth;
-					collision.normal = n;
+				if (depth < c.collisionDepth) {
+					c.collisionDepth = depth;
+					c.normal = n;
 
 					// Calculate the collision point
 					if (i < split) {
-						collision.normalOwner = ta;
+						c.normalOwner = ta;
 					} else {
-						collision.normalOwner = tb;
+						c.normalOwner = tb;
 					}
 				}
 			} else {
@@ -129,23 +142,24 @@ public class CollisionData {
 		
 		// The normal should point from A to B
 		// Find a way to write this without if-s and I will buy you
-		// an ice-cream, seriously
-		if (collision.normalOwner == ta) {
-			if (collision.normal.dot(distance) < 0.0f) {
-				collision.normal.negate();
+		// an ice-cream, seriously.
+		if (c.normalOwner == ta) {
+			if (c.normal.dot(c.distance) < 0.0f) {
+				c.normal.negate();
 			}
 		} else {
-			if (collision.normal.dot(distance) > 0.0f) {
-				collision.normal.negate();
+			if (c.normal.dot(c.distance) > 0.0f) {
+				c.normal.negate();
 			}
 		}
-		return collision;
+		return c;
 	}
 	
 	/**
-	 * Solves the collision that is stored in this object.
-	 * 
-	 * This applies friction and bounce to all objects
+	 * Solves the contained collision.
+	 * <p>
+	 * Note: This applies friction and bounce to all objects.
+	 * </p>
 	 */
 	public void solve(float delta) {
 		// If both bodies are dynamic
@@ -155,6 +169,8 @@ public class CollisionData {
 		if (a.getTransform() == normalOwner) {
 			normal.negate();
 		}
+		
+		
 		
 		// Move it back
 		Vector2f reverse;
@@ -170,7 +186,8 @@ public class CollisionData {
 		Vector2f relativeVelocity = new Vector2f();
 		Vector2f.sub(a.getNextVelocity(), b.getNextVelocity(), relativeVelocity);
 		
-		float normalVelocity = Vector2f.dot(relativeVelocity, normal);
+		normalVelocity = Vector2f.dot(relativeVelocity, normal);
+		
 		// Make sure we're not moving away, if we are, just return
 		if (0.0f > normalVelocity) return;
 		
@@ -188,6 +205,9 @@ public class CollisionData {
 			b.addForce(bounceForce);
 		}
 		
+		// Store it for future use.
+		impactForce = bounceImpulse;
+		
 		// Friction
 		float mu = Math.min(a.getFriction(), b.getFriction());
 		if (mu == 0.0f) return;
@@ -196,17 +216,17 @@ public class CollisionData {
 		// Super fast manual rotation and creation
 		Vector2f tangent = new Vector2f(normal.y, -normal.x);
 		// Make sure we're slowing down in the right direction
-		float frictionDirection = relativeVelocity.dot(tangent);
-		if (0.0f > frictionDirection) {
+		tangentVelocity = relativeVelocity.dot(tangent);
+		if (0.0f > tangentVelocity) {
 			// If they're pointing the same way, flip them
 			tangent.negate();
 		}
 		
-		frictionDirection = Math.abs(frictionDirection);
+		float frictionStrength = Math.abs(tangentVelocity);
 		
 		// If the friction force will slow us down too much, clamp it
-		if (frictionDirection < frictionImpulse) {
-			tangent.scale(frictionDirection * totalMass);
+		if (frictionStrength < frictionImpulse) {
+			tangent.scale(frictionStrength * totalMass);
 		} else {
 			tangent.scale(frictionImpulse * totalMass);
 		}

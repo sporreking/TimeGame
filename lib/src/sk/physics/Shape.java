@@ -13,8 +13,8 @@ import sk.util.vector.Vector3f;
  * part. The shape is the restriction that
  * prevents overlap.
  * 
- * A body is not limited to be used by one
- * single body. It can be added to any number
+ * A shape is not limited to be used by one
+ * single body. It may be added to any number
  * of bodies.
  * 
  * @author Ed
@@ -32,34 +32,33 @@ public class Shape {
 	private float broadPhaseLength = 0.0f;
 	
 	/**
-	 * The points will be joined in the order you supplied, 
-	 * where clockwise is expected
-	 * Note that they are not allowed to be concave.
-	 * 
-	 * @param points The points that make up the shape.
-	 * 
+	 * The points will be joined in the order you supplied.
+	 * <p>
+	 * Note: Shapes are not allowed to be concave.
+	 * </p>
+	 * @param points the points that make up the shape.
 	 */
 	public Shape(Vertex2D... points) {
 		this.points = new Vector2f[points.length];
+		
 		for (int i = 0; i < points.length; i++) {
 			this.points[i] = new Vector2f(points[i].getData(0));
 		}
+		
 		processPoints();
 	}
 	
 	/**
-	 * This constructor casts Vertecies to Vector2f and uses them
-	 * as points, but other than that this doesn't do any checks
-	 * what so ever on the data, this is if you need some serious
-	 * speed in your load times or have found a cool exploit. 
+	 * This constructor casts vertices to vectors and uses them
+	 * as points. No checks are made to verify the vertex data.
 	 * 
 	 * Note that normals that suffice the condition:
-	 *  |V dot U| = 1
-	 * Only require one of them to be submitted as normals for
+	 * <code>"|V dot U| = 1"</code>
+	 * only require one of them to be submitted as normals for
 	 * an accurate collision check.
 	 * 
-	 * @param points The points that make up the shape
-	 * @param normals The normals of the shape
+	 * @param points the points that make up the shape.
+	 * @param normals the normals of the shape.
 	 */
 	public Shape(Vertex2D[] points, Vector2f[] normals) {
 		this.points = new Vector2f[points.length];
@@ -74,16 +73,15 @@ public class Shape {
 	
 	/**
 	 * This constructor doesn't do any checks what so ever on 
-	 * the data, this is if you need some serious speed in 
-	 * your load times or have found a cool exploit. 
+	 * the data. 
 	 * 
 	 * Note that normals that suffice the condition:
-	 *  |V dot U| = 1
-	 * Only require one of them to be submitted as normals for
+	 * <code>"|V dot U| = 1"</code>
+	 * only require one of them to be submitted as normals for
 	 * an accurate collision check.
 	 * 
-	 * @param points The points that make up the shape
-	 * @param normals The normals of the shape
+	 * @param points the points that make up the shape.
+	 * @param normals the normals of the shape.
 	 */
 	public Shape(Vector2f[] points, Vector2f[] normals) {
 		this.points = points.clone();
@@ -93,11 +91,12 @@ public class Shape {
 	}
 	
 	/**
+	 * The points will be joined in the order you supplied.
+	 * <p>
+	 * Note: Shapes are not allowed to be concave.
+	 * </p>
 	 * 
-	 * @param points The points that make up the shape.
-	 * The points will be joined in the order you supplied, 
-	 * where clockwise is expected
-	 * Note that they are not allowed to be concave.
+	 * @param points the points that make up the shape.
 	 */
 	public Shape(Vector2f... points) {
 		this.points = points;
@@ -105,9 +104,11 @@ public class Shape {
 	}
 	
 	/**
-	 * Processes the points in the object and generates the
-	 * appropriate normal and edge data. This speeds up the 
-	 * collision check by doing some preprocessing
+	 * Processes the points in the this shape and generates the
+	 * appropriate normal and edge data. This speeds
+	 * up the collision check.
+	 * 
+	 * @throws IllegalStateException if the specified points do not form a valid polygon.
 	 */
 	private void processPoints() {
 		// We don't want multiple of the same normals, so we calculate them on the fly
@@ -115,7 +116,7 @@ public class Shape {
 		Vector2f edge = new Vector2f();
 
 		if (points.length < 3) {
-			throw new IllegalArgumentException("There must be more than two points in a polygon... Shame on you!");
+			throw new IllegalStateException("There must be more than two points in a polygon... Shame on you!");
 		}
 		
 		// Calculate the center
@@ -130,7 +131,7 @@ public class Shape {
 			p.sub(center);
 		}
 		
-		// Calculate the direction to loo through them
+		// Calculate the direction to loop through them
 		Vector2f edgeA = points[points.length - 1].clone().sub(points[0]);
 		Vector2f edgeB = points[1].clone().sub(points[0]);
 		
@@ -147,9 +148,9 @@ public class Shape {
 			
 			Vector2f normal;
 			if (rightHand) {
-				normal = new Vector2f(-edge.y, edge.x);
+				normal = new Vector2f( edge.y,-edge.x);
 			} else {
-				normal = new Vector2f(edge.y, -edge.x);
+				normal = new Vector2f(-edge.y, edge.x);
 			}
 			normal.normalise();
 			int j = 0;
@@ -169,7 +170,7 @@ public class Shape {
 	}
 	
 	/**
-	 * Calculates the Broad Phase Length of the body, nice and easy.
+	 * Calculates the Broad Phase Length of the body.
 	 */
 	private void calculateBPRange() {
 		broadPhaseLength = 0.0f;
@@ -179,18 +180,24 @@ public class Shape {
 	}
 	
 	/**
-	 * Returns the center position
-	 * @return the position
+	 * Returns the center position of the shape.
+	 * 
+	 * @return the center position.
 	 */
 	public Vector2f getCenter(Transform t) {
 		return new Vector2f(center.x * t.scale.x, center.y * t.scale.y).add(t.position);
 	}
 	
 	/**
-	 * Draws a shape really sloppily. Don't use this in production.
+	 * Draws this shape.
 	 * 
-	 * @param t the transform of the shape.
-	 * @param color the color you want.
+	 * <p>
+	 * Note: This uses OpenGL Immediate mode. Thus, it is either slow, or doesn't work.
+	 * Should only be used for debugging.
+	 * </p>
+	 * 
+	 * @param t this transform will be applied to the shape upon rendering.
+	 * @param color the color to draw with.
 	 */
 	public void _draw(Transform t, Vector3f color) {
 		// Bounds
@@ -214,22 +221,30 @@ public class Shape {
 			// Translate
 			b.add(t.position);
 			
-			Debug.Debug.drawLine(a, b, color);
+			sk.debug.Debug.drawLine(a, b, color);
+		}
+		
+		// Normals
+		for (Vector2f n : normals) {
+			Vector2f a = getCenter(t);
+			Vector2f b = getCenter(t).clone().add(n.clone().rotate(t.rotation));
+					
+			sk.debug.Debug.drawLine(a, b, (Vector3f) color.scale(0.5f));		;
 		}
 		
 		// The broadphase check
-		Debug.Debug.drawCircle(getCenter(t), getBP(t));
+		sk.debug.Debug.drawCircle(getCenter(t), getBP(t));
 	}
 	
 	/**
 	 * This value is used for broad phase checks.
 	 * The check is a simple circular check,
 	 * where the extents are the maximum width of
-	 * the Shape in question.
+	 * this shape.
 	 * 
 	 * @param t the transform for the current shape.
 	 * 
-	 * @return The largest distance from origo.
+	 * @return the largest distance from origin.
 	 */
 	public float getBP(Transform t) {
 		return broadPhaseLength * Math.abs(Math.max(t.scale.x, t.scale.y));
@@ -255,10 +270,12 @@ public class Shape {
 	}
 	
 	/**
-	 * Casts the shape along the normal specified returning the maximum point
-	 * @param axis The axis you want to cast along
-	 * @return The longest distance along the axis
-	 * of all the points
+	 * Casts the shape along the specified normal and transform, returning the maximum point.
+	 * 
+	 * @param axis the axis you want to cast along.
+	 * @param t the transform to cast along.
+	 * @return the longest distance along the axis
+	 * of all the points.
 	 */
 	public float castAlongMax(Vector2f axis, Transform t) {
 		float max = 0;
@@ -269,10 +286,12 @@ public class Shape {
 	}
 	
 	/**
-	 * Casts the shape along the normal specified returning the minimum point
-	 * @param axis The axis you want to cast along
-	 * @return The longest distance along the axis
-	 * of all points
+	 * Casts the shape along the specified normal, returning the minimum point.
+	 * 
+	 * @param axis the axis you want to cast along.
+	 * @param t the transform to cast along.
+	 * @return the longest distance along the axis
+	 * of all points.
 	 */
 	public float castAlongMin(Vector2f axis, Transform t) {
 		float min = 0;
@@ -283,7 +302,9 @@ public class Shape {
 	}
 
 	/**
-	 * @return The normals of this shape
+	 * Returns a vector array containing all normals of this shape.
+	 * 
+	 * @return the normals of this shape.
 	 */
 	public Vector2f[] getNormals() {
 		return normals.clone();

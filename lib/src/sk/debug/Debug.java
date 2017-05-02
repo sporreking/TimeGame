@@ -1,4 +1,4 @@
-package Debug;
+package sk.debug;
 import java.util.ArrayList;
 
 import org.lwjgl.opengl.GL;

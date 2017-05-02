@@ -10,6 +10,7 @@ import sk.gfx.Transform;
 public class Entity extends Node {
 	
 	private TreeMap<Integer, ArrayList<Component>> components;
+	private ArrayList<Class<? extends Component>> trash;
 	
 	/**
 	 * 
@@ -18,13 +19,18 @@ public class Entity extends Node {
 	 */
 	public Entity() {
 		components = new TreeMap<>();
+		trash = new ArrayList<>();
 	}
 	
 	@Override
 	public void update(double delta) {
+		checkTrash();
+		
 		for(int i : components.keySet())
 			for(Component c : components.get(i))
 				c.update(delta);
+		
+		checkTrash();
 	}
 	
 	@Override
@@ -32,6 +38,25 @@ public class Entity extends Node {
 		for(int i : components.keySet())
 			for(Component c : components.get(i))
 				c.draw();
+	}
+	
+	private void checkTrash() {
+		if(trash.isEmpty())
+			return;
+		
+		for(int i = 0; i < trash.size(); i++) {
+			int p = getPriority(trash.get(i));
+			
+			for(Component comp : components.get(p)) {
+				if(comp.getClass() == trash.get(i)) {
+					comp.removeParent();
+					components.get(p).remove(comp);
+					break;
+				}
+			}
+		}
+		
+		trash.clear();
 	}
 	
 	/**
@@ -175,14 +200,7 @@ public class Entity extends Node {
 			throw new IllegalArgumentException("The component \"" + c.getSimpleName()
 					+ "\" is not a part of this entity");
 		
-		int p = getPriority(c);
-		
-		for(Component comp : components.get(p)) {
-			if(comp.getClass() == c) {
-				comp.removeParent();
-				components.get(p).remove(comp);
-			}
-		}
+		trash.add(c);
 		
 		return this;
 	}
