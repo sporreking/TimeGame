@@ -2,10 +2,13 @@ package player;
 
 import game.level.Chunk;
 import sk.entity.Entity;
+import sk.gfx.Animation;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
+import sk.gfx.SpriteSheet;
 import sk.gfx.Texture;
 import sk.gfx.Transform;
+import sk.gfx.Vertex2D;
 import sk.physics.Body;
 import sk.physics.Collision;
 import sk.physics.Shape;
@@ -24,6 +27,11 @@ public class Player extends Entity {
 	Body body;
 	Movement movement;
 	Renderer renderer;
+	AnimationHandler ah;
+	
+	protected boolean running = false;
+	protected int dir = -1;
+	protected boolean grounded = false;
 	
 	public Player(boolean isBoy) {
 		super();
@@ -31,7 +39,6 @@ public class Player extends Entity {
 		transform = new Transform();
 		transform.scale.x = width * SCALE; 
 		transform.scale.y = height * SCALE;
-		transform.position.x = .1f;
 		body = new Body(1, 0, 0, new Shape(new Vector2f[] {
 				new Vector2f(-0.5f,  0.5f),
 				new Vector2f( 0.5f,  0.5f),
@@ -41,11 +48,30 @@ public class Player extends Entity {
 				}));
 		body.setOnlyOverlap(true);
 		movement = new Movement(isBoy);
-		renderer = new Renderer(Mesh.QUAD).setTexture(new Texture("res/texture/wood.png"));
+		renderer = new Renderer(new Mesh(new Vertex2D[] {
+				new Vertex2D(-1f, .4f / .4f, 0, 0),
+				new Vertex2D(1f, .4f / .4f, 1, 0),
+				new Vertex2D(1f, -.2f / .4f, 1, 1),
+				new Vertex2D(-1f, -.2f / .4f, 0, 1)
+		}, 0, 1, 3, 3, 1, 2));
+		
+		ah = new AnimationHandler(this);
 		
 		add(transform);
 		add(1, body);
 		add(-1, movement);
 		add(renderer);
+		add(ah);
+	}
+	
+	@Override
+	public void update(double delta) {
+		super.update(delta);
+		
+		if(ah.animationToAdd != null) {
+			add(ah.animationToAdd);
+			ah.animationToAdd.setOffset(0);
+			ah.animationToAdd = null;
+		}
 	}
 }

@@ -121,7 +121,7 @@ public class Level extends Node {
 		checkTerrainBlockage();
 		
 		player1.update(delta);
-		player2.update(delta);
+		player2.update(delta);		
 		
 		adjustCamera();
 	}

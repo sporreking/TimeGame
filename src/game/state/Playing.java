@@ -6,7 +6,6 @@ import game.level.Level;
 import game.level.LevelLoader;
 import player.Movement;
 import player.Player;
-import sk.debug.Debug;
 import sk.entity.Entity;
 import sk.gamestate.GameState;
 import sk.gfx.Camera;
@@ -46,7 +45,6 @@ public class Playing implements GameState {
 	public void draw() {
 		level.draw();
 		//level.terrain[0]._draw();
-		Debug.draw();
 	}
 	
 	@Override
