@@ -1,6 +1,7 @@
 package player;
 
 import game.level.Chunk;
+import game.level.Level;
 import sk.entity.Entity;
 import sk.gfx.Animation;
 import sk.gfx.Mesh;
@@ -19,6 +20,7 @@ public class Player extends Entity {
 	final float SCALE = 1f / Chunk.SIZE;
 
 	boolean isBoy;
+	boolean alive = true;
 	
 	Transform transform;
 	Body body;
@@ -61,14 +63,42 @@ public class Player extends Entity {
 		add(ah);
 	}
 	
+	public void kill() {
+		body.setTrigger(true);
+		alive = false;
+	}
+	
+	public boolean isAlive() {
+		return alive;
+	}
+	
 	@Override
 	public void update(double delta) {
+		if(body.hasDeepCollision(1f / 128 * 5)) {
+			kill();
+		}
+		
+		if (body.isCollidingWithTag("death")) {
+			kill();
+		}
+		
+		if (!alive) {
+			return;
+		}
+		
 		super.update(delta);
 		
-		if(ah.animationToAdd != null) {
+		if (ah.animationToAdd != null) {
 			add(ah.animationToAdd);
 			ah.animationToAdd.setOffset(0);
 			ah.animationToAdd = null;
+		}
+	}
+	
+	@Override
+	public void draw() {
+		if (alive) {
+			super.draw();
 		}
 	}
 }
