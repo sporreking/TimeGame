@@ -83,6 +83,7 @@ public class Level extends Node {
 			worlds[i].addBody(player2.get(Body.class));
 			player2.get(Body.class).setLayer((short) 0b0000000000000010);
 		}
+		terrain[1].setTag("ice");
 	}
 	
 	public void switchTime() {

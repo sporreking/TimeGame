@@ -23,9 +23,11 @@ public class Movement extends Component {
 	private float bufferMaxTime = 0.1f;
 	private float bufferTime = 0;
 	private boolean jumping = false;
+	private boolean onIce = false;
 	
 	private float gravity = -2.8f;
 	private float groundAcc = 15f;
+	private float iceAcc = 3.0f;
 	private float airAcc = 2.0f;
 	private float fallAcc = 0.75f;
 	private float maxFallSpeed = 4.0f;
@@ -34,10 +36,10 @@ public class Movement extends Component {
 	private float minGroundAngle = 0.3f;
 	
 	private float groundFriction = 0.4f;
+	private float iceFriction = 0.95f;
 	private float airFriction = 1.0f;
 	private float jumpFriction = 0.75f;
 	
-	private boolean grounded;
 	private boolean isBoy;
 	
 	private int keyLeft;
@@ -84,10 +86,11 @@ public class Movement extends Component {
 		while (timer > TIME_STEP) {
 			timer -= TIME_STEP;
 		
-			grounded = body.dotCollisionNormals(UP) > minGroundAngle;
-			Vector2f v = new Vector2f(0, gravity * TIME_STEP * (grounded ? 0 : 1));
+			onIce = body.isCollidingWithTag("ice");
+			player.grounded = body.dotCollisionNormals(UP) > minGroundAngle;
+			Vector2f v = new Vector2f(0, gravity * TIME_STEP * (player.grounded ? 0 : 1));
 			
-			float acc = (grounded ? groundAcc : airAcc);
+			float acc = (player.grounded ? (onIce ? iceAcc : groundAcc) : airAcc);
 			
 			if (Keyboard.down(keyLeft)) {
 				v.x -= acc * TIME_STEP;
@@ -116,7 +119,7 @@ public class Movement extends Component {
 				player.running = false;
 			}
 		
-			float friction = grounded ? groundFriction : airFriction;
+			float friction = player.grounded ? (onIce ? iceFriction : groundFriction) : airFriction;
 			Vector2f bodyVelocity = body.getVelocity(); 
 			
 			// Add in the velocity we normally have
@@ -150,11 +153,11 @@ public class Movement extends Component {
 				jumping = bufferTime < bufferMaxTime;
 			}
 			
-			if (jumping && grounded) {
+			if (jumping && player.grounded) {
 				jumping = false;
 				v.y = jumpVel;
 			} else {
-				if (grounded) {
+				if (player.grounded) {
 					for (Collision c : body.getCollisions()) {
 						if (c.normal.dot(UP) > minGroundAngle) {
 							Vector2f n = c.normal.clone();

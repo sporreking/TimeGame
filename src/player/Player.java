@@ -5,12 +5,9 @@ import sk.entity.Entity;
 import sk.gfx.Animation;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
-import sk.gfx.SpriteSheet;
-import sk.gfx.Texture;
 import sk.gfx.Transform;
 import sk.gfx.Vertex2D;
 import sk.physics.Body;
-import sk.physics.Collision;
 import sk.physics.Shape;
 import sk.util.vector.Vector2f;
 
@@ -30,8 +27,8 @@ public class Player extends Entity {
 	AnimationHandler ah;
 	
 	protected boolean running = false;
-	protected int dir = -1;
 	protected boolean grounded = false;
+	protected int dir = -1;
 	
 	public Player(boolean isBoy) {
 		super();
