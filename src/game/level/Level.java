@@ -48,7 +48,7 @@ public class Level extends Node {
 		
 		for(int i = 0; i < worlds.length; i++) {
 			worlds[i] = new World();
-			worlds[i].gravity = new Vector2f(0, -2.5f);
+			worlds[i].gravity = new Vector2f(0, -2.8f);
 		}
 		
 		chunks = new Chunk[2][data[0].chunksY][data[0].chunksX];
@@ -83,6 +83,7 @@ public class Level extends Node {
 			worlds[i].addBody(player2.get(Body.class));
 			player2.get(Body.class).setLayer((short) 0b0000000000000010);
 		}
+		terrain[1].setTag("ice");
 	}
 	
 	public void switchTime() {
