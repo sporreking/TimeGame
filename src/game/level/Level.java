@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
+import game.TG;
 import game.level.enemy.Enemy;
 import game.parallax.ParallaxRender;
+import game.state.Playing;
 import player.Movement;
 import player.Player;
 import sk.entity.Container;
@@ -65,7 +67,8 @@ public class Level extends Node {
 			r_bg[i].camera = Camera.GUI;
 			r_bg[i].transform.scale.x = 4 * 3f / 4f;
 			r_bg[i].transform.scale.y = 2;
-			r_bg[i].setTexture(new Texture("res/level/bg_" + i + ".png"));
+			r_bg[i].setTexture(new Texture(Playing.PREFIX_URL + TG.GS_PLAYING.chapter
+					+ "/" + "bg_" + i + ".png"));
 		}
 		
 		chunks = new Chunk[2][data[0].chunksY][data[0].chunksX];
