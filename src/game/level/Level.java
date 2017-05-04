@@ -61,6 +61,7 @@ public class Level extends Node {
 		
 		for(int i = 0; i < worlds.length; i++) {
 			worlds[i] = new World();
+			
 			worlds[i].gravity = new Vector2f(0, -2.5f);
 			
 			r_bg[i] = new Renderer(Mesh.QUAD);
@@ -69,6 +70,8 @@ public class Level extends Node {
 			r_bg[i].transform.scale.y = 2;
 			r_bg[i].setTexture(new Texture(Playing.PREFIX_URL + TG.GS_PLAYING.chapter
 					+ "/" + "bg_" + i + ".png"));
+			
+			worlds[i].gravity = new Vector2f(0, -2.8f);
 		}
 		
 		chunks = new Chunk[2][data[0].chunksY][data[0].chunksX];
@@ -103,11 +106,11 @@ public class Level extends Node {
 			worlds[i].addBody(player2.get(Body.class));
 			player2.get(Body.class).setLayer((short) 0b0000000000000010);
 		}
-		
 		Enemy e = new Enemy(this, 0, Enemy.Type.SWALLOWER, .1f, -.4f);
 		enemies.add(e);
 		worlds[0].addBody(e.get(Body.class));
 		System.out.println("TODO: REMOVE ENEMY\nADJUST BG LOADING");
+		terrain[1].setTag("ice");
 	}
 	
 	public void switchTime() {

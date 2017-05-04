@@ -5,8 +5,6 @@ import sk.entity.Entity;
 import sk.gfx.Animation;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
-import sk.gfx.SpriteSheet;
-import sk.gfx.Texture;
 import sk.gfx.Transform;
 import sk.gfx.Vertex2D;
 import sk.physics.Body;
@@ -29,8 +27,8 @@ public class Player extends Entity {
 	AnimationHandler ah;
 	
 	protected boolean running = false;
-	protected int dir = -1;
 	protected boolean grounded = false;
+	protected int dir = -1;
 	
 	public boolean enabled = true;
 	
@@ -47,6 +45,9 @@ public class Player extends Entity {
 				new Vector2f( 0.0f, -0.5f),
 				new Vector2f(-0.5f, -0.35f)
 				})).setTag(isBoy ? "p1" : "p2");
+		
+		body.setOnlyOverlap(true);
+		
 		movement = new Movement(isBoy);
 		renderer = new Renderer(new Mesh(new Vertex2D[] {
 				new Vertex2D(-1f, .4f / .4f, 0, 0),
@@ -58,8 +59,8 @@ public class Player extends Entity {
 		ah = new AnimationHandler(this);
 		
 		add(transform);
-		add(body);
-		add(movement);
+		add(1, body);
+		add(-1, movement);
 		add(renderer);
 		add(ah);
 	}

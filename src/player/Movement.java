@@ -20,15 +20,24 @@ public class Movement extends Component {
 	private final float TIME_STEP = 1.0f / 60.0f;
 	private float timer = 0;
 	
-	private float acceleration = 15f;
-	private float maxSpeed = 0.5f;
+	private float bufferMaxTime = 0.1f;
+	private float bufferTime = 0;
+	private boolean jumping = false;
+	private boolean onIce = false;
+	
+	private float gravity = -2.8f;
+	private float groundAcc = 15f;
+	private float iceAcc = 3.0f;
+	private float airAcc = 2.0f;
+	private float fallAcc = 0.75f;
 	private float maxFallSpeed = 4.0f;
-	private float jump = 1f;
-	private float fallSpeedup = 0.75f;
-	private float groundThreshold = 0.3f;
+	private float maxSpeed = 0.5f;
+	private float jumpVel = 1.0f;
+	private float minGroundAngle = 0.3f;
 	
 	private float groundFriction = 0.4f;
-	private float airFriction = 0.9f;
+	private float iceFriction = 0.95f;
+	private float airFriction = 1.0f;
 	private float jumpFriction = 0.75f;
 	
 	private boolean isBoy;
@@ -76,20 +85,23 @@ public class Movement extends Component {
 		timer += delta;
 		while (timer > TIME_STEP) {
 			timer -= TIME_STEP;
-			Vector2f v = new Vector2f();
 		
-			player.grounded = body.dotCollisionNormals(UP) > groundThreshold;
+			onIce = body.isCollidingWithTag("ice");
+			player.grounded = body.dotCollisionNormals(UP) > minGroundAngle;
+			Vector2f v = new Vector2f(0, gravity * TIME_STEP * (player.grounded ? 0 : 1));
+			
+			float acc = (player.grounded ? (onIce ? iceAcc : groundAcc) : airAcc);
 			
 			if (Keyboard.down(keyLeft)) {
-				v.x -= acceleration * TIME_STEP;
+				v.x -= acc * TIME_STEP;
 			}
 			
 			if (Keyboard.down(keyRight)) {
-				v.x += acceleration * TIME_STEP;
+				v.x += acc * TIME_STEP;
 			}
 		
 			if (Keyboard.down(keyDown)) {
-				v.y -= fallSpeedup * TIME_STEP;
+				v.y -= fallAcc * TIME_STEP;
 			}
 			
 			if (Keyboard.pressed(keySwitch)) {
@@ -107,43 +119,54 @@ public class Movement extends Component {
 				player.running = false;
 			}
 		
-			float friction = player.grounded ? groundFriction : airFriction;
-			float temp = (Keyboard.down(keyJump) ? 1 : jumpFriction);
+			float friction = player.grounded ? (onIce ? iceFriction : groundFriction) : airFriction;
 			Vector2f bodyVelocity = body.getVelocity(); 
 			
 			// Add in the velocity we normally have
 			v = Vector2f.add(
 					v, 
 					new Vector2f(bodyVelocity.x * friction, 
-						Math.min(bodyVelocity.y, bodyVelocity.y * temp)
+						Math.min(bodyVelocity.y, 
+								bodyVelocity.y * (Keyboard.down(keyJump) ? 1 : jumpFriction))
 					), null);
-		
+
 			if (Math.abs(v.x) > maxSpeed) {
 				v.x = Math.signum(v.x) * maxSpeed;
 			}
 			
-			temp = maxFallSpeed;
+			float fall = maxFallSpeed;
 			if (Keyboard.down(keyDown)) {
-				temp += fallSpeedup;
+				fall += fallAcc;
 			}
 			
-			if (v.y < -temp) {
-				v.y = -maxFallSpeed;
+			if (v.y < -fall) {
+				v.y = -fall;
 			}
-		
-			if (player.grounded) {
-				for (Collision c : body.getCollisions()) {
-					if (c.normal.dot(UP) > groundThreshold) {
-						
+			
+			if (Keyboard.pressed(keyJump)) {
+				jumping = true;
+				bufferTime = 0;
+			}
+			
+			if (jumping) {
+				bufferTime += TIME_STEP;
+				jumping = bufferTime < bufferMaxTime;
+			}
+			
+			if (jumping && player.grounded) {
+				jumping = false;
+				v.y = jumpVel;
+			} else {
+				if (player.grounded) {
+					for (Collision c : body.getCollisions()) {
+						if (c.normal.dot(UP) > minGroundAngle) {
+							Vector2f n = c.normal.clone();
+							v.add(n.scale(-0.9f * n.dot(v)));
+						}
 					}
+					v.y = 0;
 				}
 			}
-			
-			if (Keyboard.pressed(keyJump) && player.grounded) {
-				v.y = jump;
-			}
-			
-			
 			body.setVelocity(v);
 		}
 	}
