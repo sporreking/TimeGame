@@ -37,6 +37,7 @@ public class Movement extends Component {
 	private float airFriction = 1.0f;
 	private float jumpFriction = 0.75f;
 	
+	private boolean grounded;
 	private boolean isBoy;
 	
 	private int keyLeft;
