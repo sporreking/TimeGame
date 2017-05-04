@@ -34,7 +34,7 @@ public class ParallaxState implements GameState {
 		t.scale.x = 0.5f;
 		t.scale.y = 0.5f;
 		backLayer.add(0, t);
-		backLayer.add(0, new ParallaxRender(Mesh.QUAD, 2));
+		backLayer.add(0, new ParallaxRender(Mesh.QUAD, 2, false));
 		root.add(0, "backLayer", backLayer);
 		
 		t = new Transform();
@@ -42,7 +42,7 @@ public class ParallaxState implements GameState {
 		t.scale.x = 0.5f;
 		t.scale.y = 0.5f;
 		frontLayer.add(0, t);
-		frontLayer.add(0, new ParallaxRender(Mesh.QUAD, -2));
+		frontLayer.add(0, new ParallaxRender(Mesh.QUAD, -2, false));
 		root.add(0, "frontLayer", frontLayer);
 	}
 

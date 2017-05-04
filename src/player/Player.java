@@ -32,6 +32,8 @@ public class Player extends Entity {
 	protected int dir = -1;
 	protected boolean grounded = false;
 	
+	public boolean enabled = true;
+	
 	public Player(boolean isBoy) {
 		super();
 		this.isBoy = isBoy;
@@ -44,7 +46,7 @@ public class Player extends Entity {
 				new Vector2f( 0.5f, -0.35f),
 				new Vector2f( 0.0f, -0.5f),
 				new Vector2f(-0.5f, -0.35f)
-				}));
+				})).setTag(isBoy ? "p1" : "p2");
 		movement = new Movement(isBoy);
 		renderer = new Renderer(new Mesh(new Vertex2D[] {
 				new Vertex2D(-1f, .4f / .4f, 0, 0),
@@ -64,6 +66,9 @@ public class Player extends Entity {
 	
 	@Override
 	public void update(double delta) {
+		if(!enabled)
+			return;
+		
 		super.update(delta);
 		
 		if(ah.animationToAdd != null) {
@@ -71,5 +76,13 @@ public class Player extends Entity {
 			ah.animationToAdd.setOffset(0);
 			ah.animationToAdd = null;
 		}
+	}
+	
+	@Override
+	public void draw() {
+		if(!enabled)
+			return;
+		
+		super.draw();
 	}
 }
