@@ -1,5 +1,8 @@
 package game.state;
 
+import java.io.File;
+import java.util.ArrayList;
+
 import org.lwjgl.glfw.GLFW;
 
 import game.level.Level;
@@ -22,8 +25,16 @@ import sk.util.vector.Vector3f;
 
 public class Playing implements GameState {
 	
+	public static final String PREFIX_URL = "res/level/";
+	
 	private Player player1, player2;
 	private Level level;
+	
+	//TODO: Change to dynamic choice
+	public String chapter = "test";
+	
+	private ArrayList<String> levels;
+	private int current;
 	
 	@Override
 	public void init() {
@@ -33,7 +44,30 @@ public class Playing implements GameState {
 		player1 = new Player(true);
 		player2 = new Player(false);
 		
-		level = new Level(player1, player2, LevelLoader.load("lvl1_0"), LevelLoader.load("lvl1_1"));
+		setupChapter();
+		
+		playLevel();
+		
+	}
+	
+	private void playLevel() {
+		String prefix = chapter + "/" + levels.get(current);
+		level = new Level(player1, player2, LevelLoader.load(prefix + "_0"),
+				LevelLoader.load(prefix + "_1"));
+	}
+	
+	private void setupChapter() {
+		levels = new ArrayList<>();
+		
+		File base = new File(PREFIX_URL + chapter + "/");
+		
+		for(String s : base.list()) {
+			if(s.matches("^lvl[0-9]+_0\\.png")) {
+				levels.add(s.substring(0, 4));
+			}
+		}
+		
+		current = 0;
 	}
 	
 	@Override
@@ -44,7 +78,6 @@ public class Playing implements GameState {
 	@Override
 	public void draw() {
 		level.draw();
-		//level.terrain[0]._draw();
 	}
 	
 	@Override
