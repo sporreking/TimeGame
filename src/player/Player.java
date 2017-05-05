@@ -108,7 +108,7 @@ public class Player extends Entity {
 	
 	@Override
 	public void draw() {
-		if (alive || !enabled) {
+		if (alive && enabled) {
 			super.draw();
 		}
 	}
