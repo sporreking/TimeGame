@@ -48,9 +48,13 @@ public class Level extends Node {
 	private Renderer[] r_bg;
 	private ParallaxRender[] pr_frnt;
 	
+	public static final short P1_LAYER = 0b0000000000000001;
+	public static final short P2_LAYER = 0b0000000000000010;
+	
 	public Player player1, player2;
 	
 	private Container enemies;
+	private Container entities;
 	
 	public Level(Player player1, Player player2, LevelData... levelData) {
 		this.player1 = player1;
@@ -58,6 +62,7 @@ public class Level extends Node {
 		this.data = levelData;
 		
 		enemies = new Container();
+		entities = new Container();
 		
 		player1.get(Movement.class).setLevel(this);
 		player2.get(Movement.class).setLevel(this);
@@ -103,18 +108,19 @@ public class Level extends Node {
 			
 			terrain[i] = new Body(false, 1, 100, 0, shapes);
 			terrain[i].decouple(t);
-			terrain[i].setLayer((short) 0b0000000000000011);
+			terrain[i].setLayer((short) (P2_LAYER | P1_LAYER));
 			
 			worlds[i].addBody(terrain[i]);
 			worlds[i].addBody(player1.get(Body.class));
-			player1.get(Body.class).setLayer((short) 0b0000000000000001);
+			player1.get(Body.class).setLayer((short) P1_LAYER);
 			worlds[i].addBody(player2.get(Body.class));
-			player2.get(Body.class).setLayer((short) 0b0000000000000010);
+			player2.get(Body.class).setLayer((short) P2_LAYER);
 		}
 		Enemy e = new Enemy(this, 0, Enemy.Type.SWALLOWER, .1f, -.4f);
 		enemies.add(e);
+		entities.add(new Teleporter(this, new Vector2f(0, 0), new Vector2f(-0.3f, -0.4f)));
 		worlds[0].addBody(e.get(Body.class));
-		System.out.println("TODO: REMOVE ENEMY\nADJUST BG LOADING");
+		System.out.println("TODO: REMOVE ENEMY\nTODO: REMOVE HARD CODED TELEPORTER\nADJUST BG LOADING");
 		terrain[1].setTag("ice");
 	}
 	
@@ -198,6 +204,7 @@ public class Level extends Node {
 		player2.update(delta);		
 		
 		enemies.update(delta);
+		entities.update(delta);
 		
 		checkDeaths();
 		
@@ -230,6 +237,7 @@ public class Level extends Node {
 		}
 		
 		enemies.draw();
+		entities.draw();
 	}
 	
 	@Override
