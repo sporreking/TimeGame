@@ -54,7 +54,7 @@ public class Body extends Component {
 	private Transform transform = new Transform();
 	
 	// A tag that makes it easier to search for collisions
-	private String tag;
+	private String tag = "";
 	
 	// A list of all collisions this frame
 	private ArrayList<Collision> collisions = new ArrayList<Collision>();

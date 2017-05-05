@@ -13,14 +13,16 @@ import sk.util.vector.Vector2f;
  */
 public class ParallaxRender extends Renderer {
 
-	float parallax;
+	private float parallax;
+	private boolean invertY;
 	
-	public ParallaxRender(Mesh mesh, int distance) {
+	public ParallaxRender(Mesh mesh, float distance, boolean invertY) {
 		super(mesh);
 		setDistance(distance);
+		this.invertY = invertY;
 	}
 	
-	public void setDistance(int distance) {
+	public void setDistance(float distance) {
 		parallax = (float) Math.pow(2, distance);
 	}
 	
@@ -41,7 +43,7 @@ public class ParallaxRender extends Renderer {
 		GameShaders.PARALLAX_SHADER.send1i("t_sampler", 0);
 
 		Vector2f p = camera.position.clone().scale(-parallax);
-		GameShaders.PARALLAX_SHADER.send2f("parallax", p.x, p.y);
+		GameShaders.PARALLAX_SHADER.send2f("parallax", p.x, p.y * (invertY ? -1 : 1));
 		
 		super.getTexture().bind(0);
 		
