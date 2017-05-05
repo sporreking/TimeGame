@@ -19,6 +19,7 @@ import sk.entity.Root;
 import sk.gfx.Camera;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
+import sk.gfx.SpriteSheet;
 import sk.gfx.Texture;
 import sk.gfx.Transform;
 import sk.gfx.Vertex2D;
@@ -38,12 +39,15 @@ public class Level extends Node {
 	public World[] worlds;
 	public Body[] terrain;
 	
-	private Renderer[] r_bg;
-	private ParallaxRender[] pr_frnt;
+	//private Renderer[] r_bg;
+	//private ParallaxRender[] pr_frnt;
 	
 	public Player player1, player2;
 	
 	private Container enemies;
+	
+	private ParallaxRender[] pr_1;
+	private ParallaxRender[] pr_2;
 	
 	public Level(Player player1, Player player2, LevelData... levelData) {
 		this.player1 = player1;
@@ -57,29 +61,36 @@ public class Level extends Node {
 		
 		worlds = new World[levelData.length];
 		terrain = new Body[levelData.length];
-		r_bg = new Renderer[levelData.length];
+		//r_bg = new Renderer[levelData.length];
+		
+		createParallax();
 		
 		for(int i = 0; i < worlds.length; i++) {
 			worlds[i] = new World();
 			
 			worlds[i].gravity = new Vector2f(0, -2.5f);
 			
-			r_bg[i] = new Renderer(Mesh.QUAD);
+			/*r_bg[i] = new Renderer(Mesh.QUAD);
 			r_bg[i].camera = Camera.GUI;
 			r_bg[i].transform.scale.x = 4 * 3f / 4f;
 			r_bg[i].transform.scale.y = 2;
 			r_bg[i].setTexture(new Texture(Playing.PREFIX_URL + TG.GS_PLAYING.chapter
-					+ "/" + "bg_" + i + ".png"));
+					+ "/" + "bg_" + i + ".png"));*/
 			
 			worlds[i].gravity = new Vector2f(0, -2.8f);
 		}
 		
 		chunks = new Chunk[2][data[0].chunksY][data[0].chunksX];
+		System.out.println(TG.GS_PLAYING.getPath() + "bg" + 1 + "_0");
+		SpriteSheet ss0 = new SpriteSheet(TG.GS_PLAYING.getPath() + "bg" + 1 + "_0.png",
+				data[0].chunksX, data[0].chunksY);
+		SpriteSheet ss1 = new SpriteSheet(TG.GS_PLAYING.getPath() + "bg" + 1 + "_1.png",
+				data[1].chunksX, data[1].chunksY);
 		
 		for(int i = 0; i < data[0].chunksY; i++) {
 			for(int j = 0; j < data[0].chunksX; j++) {
-				chunks[0][i][j] = new Chunk(j, i, data[0].spriteSheet.getTexture(j, i));
-				chunks[1][i][j] = new Chunk(j, i, data[1].spriteSheet.getTexture(j, i));
+				chunks[0][i][j] = new Chunk(j, i, data[0].spriteSheet.getTexture(j, i), ss0.getTexture(j, i));
+				chunks[1][i][j] = new Chunk(j, i, data[1].spriteSheet.getTexture(j, i), ss1.getTexture(j, i));
 			}
 		}
 		
@@ -111,6 +122,45 @@ public class Level extends Node {
 		worlds[0].addBody(e.get(Body.class));
 		System.out.println("TODO: REMOVE ENEMY\nADJUST BG LOADING");
 		terrain[1].setTag("ice");
+	}
+	
+	private void createParallax() {
+		
+		// PR1
+		pr_1 = new ParallaxRender[2];
+		
+		for(int i = 0; i < pr_1.length; i++) {
+			pr_1[i] = new ParallaxRender(new Mesh(new Vertex2D[] {
+					new Vertex2D(-.5f, .5f, 0, 0),
+					new Vertex2D(.5f, .5f, 2, 0),
+					new Vertex2D(.5f, -.5f, 2, 2),
+					new Vertex2D(-.5f, -.5f, 0, 2)
+			}, 0, 1, 3, 3, 1, 2), -5f, true);
+			
+			pr_1[i].transform.scale.x = 4;
+			pr_1[i].transform.scale.y = 2;
+			
+			pr_1[i].setTexture(new Texture(Playing.PREFIX_URL + TG.GS_PLAYING.chapter
+					+ "/par1_" + i + ".png"));
+		}
+		
+		//PR2
+		pr_2 = new ParallaxRender[2];
+		
+		for(int i = 0; i < pr_2.length; i++) {
+			pr_2[i] = new ParallaxRender(new Mesh(new Vertex2D[] {
+					new Vertex2D(-.5f, .5f, 0, 0),
+					new Vertex2D(.5f, .5f, 2, 0),
+					new Vertex2D(.5f, -.5f, 2, 2),
+					new Vertex2D(-.5f, -.5f, 0, 2)
+			}, 0, 1, 3, 3, 1, 2), -10f, true);
+			
+			pr_2[i].transform.scale.x = 4;
+			pr_2[i].transform.scale.y = 2;
+			
+			pr_2[i].setTexture(new Texture(Playing.PREFIX_URL + TG.GS_PLAYING.chapter
+					+ "/par2_" + i + ".png"));
+		}
 	}
 	
 	public void switchTime() {
@@ -174,7 +224,10 @@ public class Level extends Node {
 	
 	@Override
 	public void draw() {
-		r_bg[currentSheet].draw();
+		pr_2[currentSheet].draw();
+		pr_1[currentSheet].draw();
+		
+		//r_bg[currentSheet].draw();
 		player1.draw();
 		player2.draw();
 		for(int i = 0; i < data[0].chunksY; i++) {

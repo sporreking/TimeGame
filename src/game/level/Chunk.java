@@ -11,7 +11,7 @@ public class Chunk extends Entity {
 	public static final int SIZE = 128;
 	public static final float SCALE = 1f;
 	
-	public Chunk(int x, int y, Texture texture) {
+	public Chunk(int x, int y, Texture texture, Texture bg) {
 		Transform transform = new Transform();
 		transform.position.set(x * SCALE, y * SCALE);
 		transform.scale.x = SCALE;

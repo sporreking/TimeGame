@@ -34,7 +34,7 @@ public class Playing implements GameState {
 	public String chapter = "test";
 	
 	private ArrayList<String> levels;
-	private int current;
+	public int current;
 	
 	@Override
 	public void init() {
@@ -85,5 +85,13 @@ public class Playing implements GameState {
 		level.destroy();
 		player1.destroy();
 		player2.destroy();
+	}
+	
+	public String getPath() {
+		return PREFIX_URL + chapter + "/";
+	}
+	
+	public String id() {
+		return levels.get(current).substring(3).substring(0);
 	}
 }
