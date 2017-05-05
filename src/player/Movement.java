@@ -34,6 +34,8 @@ public class Movement extends Component {
 	private float maxSpeed = 0.5f;
 	private float jumpVel = 1.0f;
 	private float minGroundAngle = 0.3f;
+	private float switchCooldown = 0.5f;
+	private float switchTimer = 0.0f;
 	
 	private float groundFriction = 0.4f;
 	private float iceFriction = 0.95f;
@@ -104,7 +106,9 @@ public class Movement extends Component {
 				v.y -= fallAcc * TIME_STEP;
 			}
 			
-			if (Keyboard.pressed(keySwitch)) {
+			switchTimer -= TIME_STEP;
+			if (Keyboard.pressed(keySwitch) && switchTimer < 0) {
+				switchTimer = switchCooldown;
 				level.switchTime();
 			}
 			
@@ -165,6 +169,14 @@ public class Movement extends Component {
 						}
 					}
 					v.y = 0;
+				} else {
+					for (Collision c : body.getCollisions()) {
+						if (c.normal.dot(UP) < minGroundAngle) {
+							Vector2f n = c.normal.clone();
+							// Magic number, IDK
+							v.add(n.scale(-0.25f * n.dot(v)));
+						}
+					}
 				}
 			}
 			body.setVelocity(v);

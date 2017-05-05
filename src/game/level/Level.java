@@ -16,6 +16,8 @@ import sk.entity.Container;
 import sk.entity.Entity;
 import sk.entity.Node;
 import sk.entity.Root;
+import sk.game.Time;
+import sk.game.Window;
 import sk.gfx.Camera;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
@@ -39,8 +41,10 @@ public class Level extends Node {
 	public World[] worlds;
 	public Body[] terrain;
 	
-	//private Renderer[] r_bg;
-	//private ParallaxRender[] pr_frnt;
+	public float CameraScaleSpeed = 1.75f;
+	public float CameraMoveSpeed = 1.5f;
+
+	public float boundsPadding = 0.1f;
 	
 	public Player player1, player2;
 	
@@ -99,9 +103,7 @@ public class Level extends Node {
 			ArrayList<Shape> shapes = new ArrayList<>();
 			
 			for(int j = 0; j < data[i].terrain.size(); j++) {
-				
 				shapes.add(new Shape(data[i].terrain.get(j)));
-				
 			}
 			
 			Transform t = new Transform();
@@ -168,27 +170,68 @@ public class Level extends Node {
 		currentSheet %= 2;
 	}
 	
-	private void checkTerrainBlockage() {
-		if(player1.get(Body.class).hasDeepCollision(1f / 128 * 5)) {
-			System.out.println("DIE P1!");
-		}
+	private void checkBounds() {
 		
-		if(player2.get(Body.class).hasDeepCollision(1f / 128 * 5)) {
-			System.out.println("DIE P2!");
+		Transform t;
+		Player p;
+		for (int i = 0; i < 2; i++) {
+			switch (i) {
+			case 0:
+				p = player1;
+				break;
+			default:
+				p = player2;
+			}
+				
+			t = p.get(Transform.class);
+			// No use running a check on someone who is dead
+			if (!p.isAlive())
+				continue;
+
+			if (t.position.y + boundsPadding < -(chunks[0].length) + 0.5f) {
+				p.kill();
+			} else if (t.position.x + boundsPadding < -(chunks[0][0].length) + 0.5f) {
+				p.kill();
+			} else if (t.position.y - boundsPadding > chunks[0].length - 0.5f) {
+				p.kill();
+			} else if (t.position.x - boundsPadding > chunks[0][0].length - 0.5f) {
+				p.kill();
+			}
 		}
 	}
+	
 	
 	private void adjustCamera() {
 		Transform t1 = player1.get(Transform.class);
 		Transform t2 = player2.get(Transform.class);
 		
-		float scale = Math.max(.4f, Math.max(Math.abs(t1.position.x - t2.position.x),
-				Math.abs((t1.position.y - t2.position.y) * 4f / 3f)) / 2);
+		if (!player1.isAlive()) {
+			t1 = t2;
+		}
+		if (!player2.isAlive()) {
+			t2 = t1;
+		}
 		
+		if (!player1.isAlive() && !player2.isAlive()) {
+			return;
+		}
+		
+		float targetScale = Math.max(.4f, Math.max(Math.abs(t1.position.x - t2.position.x) * 1.1f + 0.5f,
+				Math.abs((t1.position.y - t2.position.y) * Window.getAspectRatio())) / 2);
+		
+		float scale = (float) (Camera.DEFAULT.scale.x - (Camera.DEFAULT.scale.x - targetScale) * CameraScaleSpeed * Time.getDelta());
+		
+		if (Math.abs(scale - targetScale) < 0.0001f) {
+			scale = targetScale;
+		}
 		Camera.DEFAULT.scale.x = scale;
 		Camera.DEFAULT.scale.y = scale;
-		Camera.DEFAULT.position.x = (t1.position.x + t2.position.x) / 2;
-		Camera.DEFAULT.position.y = (t1.position.y + t2.position.y) / 2;
+
+		Vector2f targetPosition = t1.position.clone().add(t2.position).scale(0.5f);
+		
+		Camera.DEFAULT.position.add(
+				targetPosition.sub(Camera.DEFAULT.position)
+				.scale((float) (CameraMoveSpeed * Time.getDelta())));
 	}
 	
 	@Override
@@ -196,7 +239,7 @@ public class Level extends Node {
 		
 		worlds[currentSheet].update(delta);
 		
-		checkTerrainBlockage();
+		checkBounds();
 		
 		player1.update(delta);
 		player2.update(delta);		
