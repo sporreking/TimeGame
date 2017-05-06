@@ -53,10 +53,7 @@ public class Battery extends Entity {
 			return;
 		}
 		
-		System.out.println(body);
-		
 		if (body.isCollidingWithTags("p1", "p2")) {
-			System.out.println("Battery collected!");
 			Hud.changeEnergy(ENERGY);
 			Hud.addScore(SCORE);
 			taken = true;
