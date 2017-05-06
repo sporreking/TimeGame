@@ -1,4 +1,4 @@
-package player;
+package game.level.player;
 
 import sk.entity.Component;
 import sk.gfx.Animation;

@@ -7,9 +7,10 @@ import org.lwjgl.glfw.GLFW;
 
 import game.level.Level;
 import game.level.LevelLoader;
-import player.Movement;
-import player.Player;
+import game.level.player.PlayerLogic;
+import game.level.player.Player;
 import sk.entity.Entity;
+import sk.game.Game;
 import sk.gamestate.GameState;
 import sk.gfx.Camera;
 import sk.gfx.Mesh;
@@ -73,6 +74,9 @@ public class Playing implements GameState {
 	@Override
 	public void update(double delta) {
 		level.update(delta);
+		
+		if (Keyboard.pressed(GLFW.GLFW_KEY_ESCAPE))
+			Game.stop();
 	}
 	
 	@Override
