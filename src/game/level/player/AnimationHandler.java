@@ -43,7 +43,9 @@ public class AnimationHandler extends Component {
 		} else 
 		
 		if(player.grounded != grounded) {
-			player.remove(Animation.class);
+			if (player.has(Animation.class))
+				player.remove(Animation.class);
+			
 			animationToAdd = player.grounded ? (player.isBoy ? (player.running ? dude1_run : dude1_idle) : (player.running ? dude2_run : dude2_idle))
 					: (player.isBoy ? dude1_jump : dude2_jump);
 			grounded = player.grounded;

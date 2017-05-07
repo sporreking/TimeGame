@@ -11,6 +11,8 @@ import game.level.resources.Battery;
 import game.level.resources.Rock;
 import game.parallax.ParallaxRender;
 import game.state.Playing;
+import sk.audio.Audio;
+import sk.audio.AudioManager;
 import sk.debug.Debug;
 import sk.entity.Container;
 import sk.entity.Node;
@@ -24,6 +26,7 @@ import sk.physics.Shape;
 import sk.physics.TriggerBody;
 import sk.physics.World;
 import sk.util.vector.Vector2f;
+import sk.util.vector.Vector3f;
 
 public class Level extends Node {
 	
@@ -57,7 +60,6 @@ public class Level extends Node {
 		this.player2 = player2;
 		this.data = levelData;
 		
-		enemies = new Container();
 		entities = new Container();
 		
 		player1.get(PlayerLogic.class).setLevel(this);
@@ -113,9 +115,9 @@ public class Level extends Node {
 			player1.get(Body.class).setLayer((short) P1_LAYER);
 			player2.get(Body.class).setLayer((short) P2_LAYER);
 		}
-		Enemy e = new Enemy(this, 0, Enemy.Type.SWALLOWER, .1f, -.4f);
-		enemies.add(e);
-		worlds[0].addBody(e.get(Body.class));
+		//Enemy e = new Enemy(this, 0, Enemy.Type.SWALLOWER, .1f, -.4f);
+		//enemies.add(e);
+		//worlds[0].addBody(e.get(Body.class));
 		entities.add(new Battery(this, 1, -0.1f, -0.4f));
 		entities.add(new Rock(this, 0, 0.1f, 0.0f));
 		System.out.println("TODO: REMOVE ENEMY\nADJUST BG LOADING");
@@ -192,6 +194,9 @@ public class Level extends Node {
 		Camera.DEFAULT.position.add(
 				targetPosition.sub(Camera.DEFAULT.position)
 				.scale((float) (CameraMoveSpeed * Time.getDelta())));
+		
+		// Update the position of the listener
+		AudioManager.setListenerPosition(new Vector3f(Camera.DEFAULT.position.x, Camera.DEFAULT.position.y, 0));
 	}
 	
 	@Override
@@ -209,7 +214,7 @@ public class Level extends Node {
 		
 		hud.update(delta);
 		
-		checkDeaths();
+		//checkDeaths();
 		
 		adjustCamera();
 	}

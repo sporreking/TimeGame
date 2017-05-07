@@ -10,6 +10,8 @@ import game.level.Level;
 import game.level.LevelLoader;
 import game.level.player.PlayerLogic;
 import game.level.player.Player;
+import sk.audio.Audio;
+import sk.audio.AudioManager;
 import sk.entity.Entity;
 import sk.game.Game;
 import sk.gamestate.GameState;
@@ -72,6 +74,8 @@ public class Playing implements GameState {
 		
 		current = 0;
 	}
+	
+	Audio s;
 	
 	@Override
 	public void update(double delta) {
