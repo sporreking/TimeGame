@@ -10,19 +10,22 @@ import org.lwjgl.glfw.GLFW;
 
 import game.level.Level;
 import game.level.resources.Launchable;
+import game.level.resources.Rock.RockLauncher;
 import sk.entity.Component;
 import sk.entity.Entity;
 import sk.gfx.Transform;
 
 public class PlayerLogic extends Launchable {
 	
+	public enum PlayerStates {
+		HELD,
+		NORMAL,
+		HIT,
+	}
+	
 	private static final Vector2f UP = new Vector2f(0, 1);
 	
 	private Body body;
-	
-	// Should be set to the same as the physics engine
-	private final float TIME_STEP = 1.0f / 60.0f;
-	private float timer = 0;
 	
 	private float bufferMaxTime = 0.1f;
 	private float bufferTime = 0;
@@ -54,6 +57,14 @@ public class PlayerLogic extends Launchable {
 	private Launchable launchable = null;
 	private boolean thrown = false;
 	private float throwSpeed = 1.0f;
+	
+	
+	private PlayerStates state = PlayerStates.NORMAL;
+
+	private float hitStrength = 0.6f;
+	private float hitTime = 0.3f;
+	private float hitTimer = 0;;
+	
 	
 	private boolean isBoy;
 	
@@ -116,9 +127,11 @@ public class PlayerLogic extends Launchable {
 			Collision[] cs = player.pickupTrigger.getCollisions();
 			for (Collision c : cs) {
 				Launchable l = null;
-				if (l == null) 
-					l = c.other.getParent().get(PlayerLogic.class);
+				l = c.other.getParent().get(PlayerLogic.class);
 				
+				if (l == null) 
+					l = c.other.getParent().get(RockLauncher.class);
+
 				if (l != null) {
 					if (l.pickup(player, holdPos)) {
 						holding = true;
@@ -130,66 +143,73 @@ public class PlayerLogic extends Launchable {
 		} else if (Keyboard.pressed(keyPickup)) {
 			Vector2f dir = new Vector2f(0, 0.75f * jumpVel);
 			
-			if (Keyboard.down(keyRight) || body.getVelocity().x > 0.1)
+			if (body.getVelocity().x > 0.1)
 				dir.x += throwSpeed;
 			
-			if (Keyboard.down(keyLeft) || body.getVelocity().x < -0.1)
+			if (body.getVelocity().x < -0.1)
 				dir.x -= throwSpeed;
 			
 			if (dir.x == 0)
 				dir.y *= 1.5;
 			
-			launchable.launch(dir);
+			tryThrow(dir);
 		}
 
-		player.grounded = false;
-		if (!held) {
-			timer += delta;
-			while (timer > TIME_STEP) {
-				timer -= TIME_STEP;
+		
+		switch (state) {
+		case HELD:
+			// Jumping out
+			if (Keyboard.pressed(keyJump)) {
+				launch(new Vector2f(0, 1));
+			} else {
+				body.setVelocity(new Vector2f());
+				transform.position = holder.get(Transform.class).position.clone().add(relativePosition);
+			}
 			
-				// Ground check
-				onIce = body.isCollidingWithTags("ice");
-				for (Collision c : body.getCollisions()) {
-					if (c.other.isTrigger()) continue;
-					player.grounded = c.normal.dot(UP) > minGroundAngle;
-					thrown = false;
-					if (player.grounded)
-						break;
+			// Launch out
+			for (Collision c : body.getCollisions()) {
+				if (!c.other.isTrigger() && c.normal.dot(UP) < minGroundAngle) {
+					launch(c.normal.clone().add(UP).scale(0.25f));
+					break;
 				}
-				
-				// Movement
-				Vector2f v = new Vector2f(0, gravity * TIME_STEP * (player.grounded ? 0 : 1));				
-				float acc = (player.grounded ? (onIce ? iceAcc : groundAcc) : airAcc);
-				
-				if (Keyboard.down(keyLeft) && (!thrown || !(body.getVelocity().x < -maxSpeed))) {
-					v.x -= acc * TIME_STEP;
-				}
-				
-				if (Keyboard.down(keyRight) && (!thrown || !(body.getVelocity().x > maxSpeed))) {
-					v.x += acc * TIME_STEP;
-				}
+			}
+			break;
+		case NORMAL:
+			// Ground check
+			groundCheck();
 			
-				if (Keyboard.down(keyDown)) {
-					v.y -= fallAcc * TIME_STEP;
-				}
-				
-				
-				if(Math.abs(v.x) > 0) {
-					player.running = true;
-					player.dir = (int) Math.signum(v.x);
-				} else {
-					player.running = false;
-				}
-				
-				if(!player.grounded) {
-					player.running = false;
-				}
+			// Movement
+			Vector2f v = new Vector2f(0, (float) (gravity * delta * (player.grounded ? 0 : 1)));				
+			float acc = (player.grounded ? (onIce ? iceAcc : groundAcc) : airAcc);
 			
-				float friction = player.grounded ? (onIce ? iceFriction : groundFriction) : airFriction;
-				Vector2f bodyVelocity = body.getVelocity(); 
-				
-				// Add in the velocity we normally have
+			if (Keyboard.down(keyLeft) && (!thrown || !(body.getVelocity().x < -maxSpeed))) {
+				v.x -= acc * delta;
+			}
+			
+			if (Keyboard.down(keyRight) && (!thrown || !(body.getVelocity().x > maxSpeed))) {
+				v.x += acc * delta;
+			}
+		
+			if (Keyboard.down(keyDown)) {
+				v.y -= fallAcc * delta;
+			}
+			
+			
+			if(Math.abs(v.x) > 0) {
+				player.running = true;
+				player.dir = (int) Math.signum(v.x);
+			} else {
+				player.running = false;
+			}
+			
+			if(!player.grounded) {
+				player.running = false;
+			}
+		
+			float friction = player.grounded ? (onIce ? iceFriction : groundFriction) : airFriction;
+			Vector2f bodyVelocity = body.getVelocity(); 
+			
+			// Add in the velocity we normally have
 				v = Vector2f.add(
 						v, 
 						new Vector2f(bodyVelocity.x * friction, 
@@ -216,7 +236,7 @@ public class PlayerLogic extends Launchable {
 				}
 				
 				if (jumping) {
-					bufferTime += TIME_STEP;
+					bufferTime += delta;
 					jumping = bufferTime < bufferMaxTime;
 				}
 				
@@ -226,7 +246,23 @@ public class PlayerLogic extends Launchable {
 				} else {
 					if (player.grounded) {
 						for (Collision c : body.getCollisions()) {
-							if (c.normal.dot(UP) > minGroundAngle && !c.other.isTrigger()) {
+							// If we get hit by a rock
+							if (c.other.getTag().equals("rock") && c.other.getVelocity().lengthSquared() >= 0.01f) {
+								state = PlayerStates.HIT;
+								body.setTrigger(true);
+								
+								v.x = -Math.signum(c.distance.x);
+								if (v.x == 0) {
+									v.x = 1;
+								}
+
+								v.x *= 0.7f;
+								v.y = 1;
+								
+								hitTimer = hitTime;
+								body.setVelocity(v.scale(hitStrength));
+								return;
+							} else if (c.normal.dot(UP) > minGroundAngle && !c.other.isTrigger()) {
 								Vector2f n = c.normal.clone();
 								v.add(n.scale(-0.9f * n.dot(v)));
 							}
@@ -243,23 +279,58 @@ public class PlayerLogic extends Launchable {
 					}
 				}
 				body.setVelocity(v);
-			}
-		} else {
-			// Jumping out
-			if (Keyboard.pressed(keyJump)) {
-				launch(new Vector2f(0, 1));
-			} else {
-				body.setVelocity(new Vector2f());
-				transform.position = holder.get(Transform.class).position.clone().add(relativePosition);
-			}
+			break;
+		
+		case HIT:
+			tryThrow();
 			
-			// Launch out
 			for (Collision c : body.getCollisions()) {
-				if (!c.other.isTrigger() && c.normal.dot(UP) < minGroundAngle) {
-					launch(c.normal.clone().add(UP).scale(0.25f));
-					break;
+				// Weed out the ones we don't want
+				if (c.other.isTrigger()) continue;
+				if (c.other.getTag().equals("rock")) continue;
+				
+				body.addVelocity(c.normal.clone().scale(-0.5f * body.getNextVelocity().dot(c.normal)));
+				transform.position.add(c.normal.clone().scale(c.collisionDepth));
+				
+				if (c.normal.dot(UP) > minGroundAngle) {
+					body.setVelocityY(Math.abs(body.getVelocity().y));
 				}
 			}
+			
+			
+			body.addVelocity(UP.clone().scale((float) (gravity * delta)));
+			if (hitTimer < 0) {
+				state = PlayerStates.NORMAL;
+				body.setTrigger(false);
+			}
+			
+			hitTimer -= delta;
+			break;
+		default:
+		}
+	}
+	
+	public void tryThrow() {
+		tryThrow(new Vector2f());
+	}
+	
+	public void tryThrow(Vector2f direction) {
+		if (launchable != null) {
+			launchable.launch(direction);
+		}
+	}
+	
+	public void groundCheck() {
+		// Ground check
+		onIce = body.isCollidingWithTags("ice");
+
+		player.grounded = false;
+		for (Collision c : body.getCollisions()) {
+			if (c.other.isTrigger()) continue;
+			player.grounded = c.normal.dot(UP) > minGroundAngle;
+			thrown = false;
+			if (player.grounded)
+				break;
 		}
 	}
 
@@ -286,6 +357,7 @@ public class PlayerLogic extends Launchable {
 
 	@Override
 	public boolean launch(Vector2f direction) {
+		if (holder == null) return false;
 		PlayerLogic c = holder.get(PlayerLogic.class);
 		
 		if (c != null)
@@ -297,11 +369,14 @@ public class PlayerLogic extends Launchable {
 		holder = null;
 		player.grounded = false;
 		thrown = true;
+		state = PlayerStates.NORMAL;
 		return true;
 	}
 
 	@Override
 	public boolean pickup(Entity holder, Vector2f relativePosition) {
+		if (held) return false;
+		
 		this.relativePosition = relativePosition;
 		this.holder = holder;
 		
@@ -311,6 +386,20 @@ public class PlayerLogic extends Launchable {
 		}
 		
 		held = true;
+		state = PlayerStates.HELD;
 		return true;
+	}
+
+	public boolean launchableIsPlayer() {
+		try {
+			if (launchable == null)
+				return false;
+			if ((Player) launchable.getParent() == null)
+				return false;
+			
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 }

@@ -71,7 +71,6 @@ public class Hud extends Entity {
 	
 	@Override
 	public void update(double delta) {
-		score += delta * 100;
 		scoreText.setText("score: " + score);
 		scoreLabel.get(GUIElement.class).setText(scoreText);
 		

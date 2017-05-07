@@ -17,6 +17,7 @@ public class Battery extends Entity {
 	Transform transform;
 	
 	Level level;
+	int layer = 0;
 	
 	private static final float ENERGY = 0.5f;
 	private static final float SCALE = 0.025f;
@@ -24,9 +25,10 @@ public class Battery extends Entity {
 	
 	boolean taken = false;
 	
-	public Battery(Level level, float x, float y) {
+	public Battery(Level level, int layer, float x, float y) {
 		this.level = level;
-
+		this.layer = layer;
+		
 		transform = new Transform();
 		transform.position.x = x;
 		transform.position.y = y;
@@ -37,7 +39,7 @@ public class Battery extends Entity {
 		body.setTrigger(true);
 		body.setDynamic(false);
 		body.setTag("battery");
-		level.worlds[0].addBody(body);
+		level.worlds[layer].addBody(body);
 		
 		renderer = new Renderer(Mesh.QUAD);
 		renderer.setTexture(new Texture("res/texture/temp.png"));
@@ -65,7 +67,7 @@ public class Battery extends Entity {
 	
 	@Override
 	public void draw() {
-		if (taken) {
+		if (taken || layer != level.currentSheet) {
 			return;
 		}
 		

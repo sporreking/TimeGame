@@ -16,6 +16,9 @@ import sk.util.vector.Vector2f;
 
 public class Player extends Entity {
 	
+	static float TIME_STEP = 1 / 60.0f;
+	float timer = 0;
+	
 	int height = 12;
 	int width = 8;
 
@@ -93,7 +96,7 @@ public class Player extends Entity {
 			return;
 		}
 
-		if (!playerLogic.isHeld()) {
+		if (!playerLogic.isHeld() && !body.isTrigger()) {
 			for (Collision c : body.getCollisions()) {
 				if (c.other.isTrigger()) continue;
 				if (c.collisionDepth > 1f / 128 * 5) {
@@ -108,8 +111,11 @@ public class Player extends Entity {
 			return;
 		}
 		
-	
-		super.update(delta);
+		timer += delta;
+		while (timer > TIME_STEP) {
+			timer -= TIME_STEP;
+			super.update(TIME_STEP);
+		}
 		
 		if (ah.animationToAdd != null) {
 			add(ah.animationToAdd);
@@ -123,5 +129,10 @@ public class Player extends Entity {
 		if (alive && enabled) {
 			super.draw();
 		}
+	}
+
+	public void switchTime() {
+		if (!playerLogic.launchableIsPlayer())
+			playerLogic.tryThrow();
 	}
 }

@@ -8,6 +8,7 @@ import game.level.player.PlayerLogic;
 import game.level.player.Hud;
 import game.level.player.Player;
 import game.level.resources.Battery;
+import game.level.resources.Rock;
 import game.parallax.ParallaxRender;
 import game.state.Playing;
 import sk.debug.Debug;
@@ -115,7 +116,8 @@ public class Level extends Node {
 		Enemy e = new Enemy(this, 0, Enemy.Type.SWALLOWER, .1f, -.4f);
 		enemies.add(e);
 		worlds[0].addBody(e.get(Body.class));
-		entities.add(new Battery(this, -0.1f, -0.4f));
+		entities.add(new Battery(this, 1, -0.1f, -0.4f));
+		entities.add(new Rock(this, 0, 0.1f, 0.0f));
 		System.out.println("TODO: REMOVE ENEMY\nADJUST BG LOADING");
 		terrain[1].setTag("ice");
 	}
@@ -123,6 +125,9 @@ public class Level extends Node {
 	public void switchTime() {
 		currentSheet++;
 		currentSheet %= 2;
+		
+		player1.switchTime();
+		player2.switchTime();
 	}
 	
 	private void checkBounds() {
