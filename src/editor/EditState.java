@@ -1,5 +1,6 @@
 package editor;
 
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Stack;
@@ -10,13 +11,18 @@ import org.lwjgl.opengl.GL11;
 import game.level.Level;
 import game.level.LevelData;
 import game.level.LevelLoader;
+import sk.entity.Container;
 import sk.entity.Entity;
+import sk.entity.Node;
+import sk.game.Game;
 import sk.gamestate.GameState;
 import sk.gfx.Camera;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
 import sk.gfx.Texture;
 import sk.gfx.Transform;
+import sk.gfx.gui.GUIButton;
+import sk.gfx.gui.GUIText;
 import sk.util.io.Keyboard;
 import sk.util.io.Mouse;
 import sk.util.vector.Vector2f;
@@ -40,9 +46,15 @@ public class EditState implements GameState {
 	private Entity e_texture;
 	
 	private int currentPolygon = -1;
-	private ArrayList<Polygon> polygons = new ArrayList<>();
+	private ArrayList<EditObject> editObjects = new ArrayList<>();
 	
-	private FixedStack<ArrayList<Polygon>> undoPolygons = new FixedStack<>(10);
+	private FixedStack<ArrayList<EditObject>> undoStack = new FixedStack<>(10);
+	
+	private AddMode mode = AddMode.POLYGON;
+	
+	private Container gui;
+	
+	private boolean guiPressed = false;
 	
 	public EditState(String path, boolean hasData, int cx, int cy) {
 		this.path = path;
@@ -76,10 +88,18 @@ public class EditState implements GameState {
 					p.add(ld.terrain.get(i)[j].x * 3f / 4f, ld.terrain.get(i)[j].y);
 				}
 				
-				polygons.add(p);
+				editObjects.add(p);
 			}
 			
-			if(!polygons.isEmpty()) {
+			for(int i = 0; i < ld.entities.size(); i++) {
+				EntityObject eo = new EntityObject(this, ld.entities.get(i).id,
+						ld.entities.get(i).value, ld.entities.get(i).position.x * 3f / 4f,
+						ld.entities.get(i).position.y);
+				
+				editObjects.add(eo);
+			}
+			
+			if(!editObjects.isEmpty()) {
 				currentPolygon = 0;
 			}
 			
@@ -97,6 +117,40 @@ public class EditState implements GameState {
 		e_texture.add(0, transform);
 		e_texture.add(0, new Renderer(Mesh.QUAD).setTexture(texture));
 		
+		initGUI();
+		
+		new Thread(new InputThread()).start();
+	}
+	
+	private void initGUI() {
+		t_red = new Texture().generate(1, 1, new int[] {0xff0000ff});
+		
+		gui = new Container();
+		
+		//B1
+		GUIButton b_1 = new GUIButton(-1, 1, 25, -25, 50, 50);
+		b_1.setTexture(t_red);
+		b_1.setOnClick(() -> guiPress(0));
+		b_1.setText(new GUIText("P", 50, 50, Font.getFont("Arial")));
+		gui.add(new Entity().add(b_1));
+		
+		//B2
+		GUIButton b_2 = new GUIButton(-1, 1, 75, -25, 50, 50);
+		b_2.setTexture(Texture.DEFAULT);
+		b_2.setOnClick(() -> guiPress(1));
+		b_2.setText(new GUIText("E", 50, 50, Font.getFont("Arial")));
+		gui.add(new Entity().add(b_2));
+	}
+	
+	private void guiPress(int i) {
+		guiPressed = true;
+		mode = AddMode.values()[i];
+		
+		for(Node n : gui.getNodes()) {
+			((Entity) n).get(GUIButton.class).setTexture(Texture.DEFAULT);
+		}
+		
+		((Entity) gui.get(i)).get(GUIButton.class).setTexture(t_red);
 	}
 	
 	@Override
@@ -107,9 +161,15 @@ public class EditState implements GameState {
 		
 		updateTriggers(delta);
 		
-		updateMouse(delta);
+		gui.update(delta);
 		
-		for(Polygon p : polygons) {
+		if(guiPressed) {
+			guiPressed = false;
+		} else {
+			updateMouse(delta);
+		}
+		
+		for(EditObject p : editObjects) {
 			p.update(delta);
 		}
 	}
@@ -153,17 +213,29 @@ public class EditState implements GameState {
 				pos.y -= dy;
 			}
 			
-			if(tr_new) {
-				undoPush();
-				Polygon p = new Polygon(this);
-				p.add(pos.x, pos.y);
-				polygons.add(p);
-				if(currentPolygon >= 0)
-					polygons.get(currentPolygon).current = false;
-				currentPolygon = polygons.size() - 1;
-				p.current = true;
-			} else if(polygons.size() > 0) {
-				polygons.get(currentPolygon).add(pos.x, pos.y);
+			if(mode == AddMode.POLYGON) {
+				if(tr_new) {
+					undoPush();
+					Polygon p = new Polygon(this);
+					p.add(pos.x, pos.y);
+					editObjects.add(p);
+					if(currentPolygon >= 0)
+						editObjects.get(currentPolygon).setCurrent(false);
+					currentPolygon = editObjects.size() - 1;
+					p.setCurrent(true);
+				} else if(editObjects.size() > 0 && editObjects.get(currentPolygon) instanceof Polygon) {
+					((Polygon) editObjects.get(currentPolygon)).add(pos.x, pos.y);
+				}
+			} else if(mode == AddMode.ENTITY) {
+				if(tr_new) {
+					undoPush();
+					EntityObject eo = new EntityObject(this, 0, 0, pos.x, pos.y);
+					editObjects.add(eo);
+					if(currentPolygon >= 0)
+						editObjects.get(currentPolygon).setCurrent(false);
+					currentPolygon = editObjects.size() - 1;
+					eo.setCurrent(true);
+				}
 			}
 		}
 	}
@@ -171,60 +243,62 @@ public class EditState implements GameState {
 	private void updateTriggers(double delta) {
 		tr_new = Keyboard.down(GLFW.GLFW_KEY_N);
 		
-		if(Keyboard.pressed(GLFW.GLFW_KEY_Q)) {
-			if(!polygons.isEmpty()) {
-				if(currentPolygon < 0 || currentPolygon >= polygons.size())
-					currentPolygon = 0;
-				polygons.get(currentPolygon).changeCurrent(-1);
-			}
-		} else if(Keyboard.pressed(GLFW.GLFW_KEY_E)) {
-			if(!polygons.isEmpty()) {
-				if(currentPolygon < 0 || currentPolygon >= polygons.size())
-					currentPolygon = 0;
-				polygons.get(currentPolygon).changeCurrent(1);
+		if(!Keyboard.down(GLFW.GLFW_KEY_LEFT_CONTROL)) {
+			if(Keyboard.pressed(GLFW.GLFW_KEY_Q)) {
+				if(!editObjects.isEmpty()) {
+					if(currentPolygon < 0 || currentPolygon >= editObjects.size())
+						currentPolygon = 0;
+					editObjects.get(currentPolygon).changeCurrent(-1);
+				}
+			} else if(Keyboard.pressed(GLFW.GLFW_KEY_E)) {
+				if(!editObjects.isEmpty()) {
+					if(currentPolygon < 0 || currentPolygon >= editObjects.size())
+						currentPolygon = 0;
+					editObjects.get(currentPolygon).changeCurrent(1);
+				}
 			}
 		}
 		
 		if(Keyboard.down(GLFW.GLFW_KEY_LEFT_CONTROL)) {
 			if(Keyboard.pressed(GLFW.GLFW_KEY_Z)) {
-				if(undoPolygons.elements() > 0)
-					polygons = undoPolygons.pop();
+				if(undoStack.elements() > 0)
+					editObjects = undoStack.pop();
 				
-				if(currentPolygon >= polygons.size())
-					currentPolygon = polygons.size() - 1;
+				if(currentPolygon >= editObjects.size())
+					currentPolygon = editObjects.size() - 1;
 			}
 			
 			if(Keyboard.pressed(GLFW.GLFW_KEY_Q)) {
-				polygons.get(currentPolygon).current = false;
+				editObjects.get(currentPolygon).setCurrent(false);
 				
 				currentPolygon--;
 				
-				currentPolygon %= polygons.size();
+				currentPolygon %= editObjects.size();
 				
 				if(currentPolygon < 0)
-					currentPolygon = polygons.size() - 1;
+					currentPolygon = editObjects.size() - 1;
 				
-				polygons.get(currentPolygon).current = true;
+				editObjects.get(currentPolygon).setCurrent(true);
 				
 			} else if(Keyboard.pressed(GLFW.GLFW_KEY_E)) {
-				polygons.get(currentPolygon).current = false;
+				editObjects.get(currentPolygon).setCurrent(false);
 				
 				currentPolygon++;
 				
-				currentPolygon %= polygons.size();
+				currentPolygon %= editObjects.size();
 				
-				polygons.get(currentPolygon).current = true;
+				editObjects.get(currentPolygon).setCurrent(true);
 			}
 			
 			if(Keyboard.pressed(GLFW.GLFW_KEY_S)) {
 				LevelLoader.save(path + ".level",
-						(short) chunkPixelSize, (short) chunksX, (short) chunksY, polygons);
+						(short) chunkPixelSize, (short) chunksX, (short) chunksY, editObjects);
 			}
 		}
 		
-		if(Keyboard.pressed(GLFW.GLFW_KEY_X)) {
+		if(Keyboard.pressed(GLFW.GLFW_KEY_X) && editObjects.size() > 0) {
 			undoPush();
-			polygons.get(currentPolygon).remove();
+			editObjects.get(currentPolygon).remove();
 		}
 		
 		if(Keyboard.pressed(GLFW.GLFW_KEY_G)) {
@@ -265,9 +339,11 @@ public class EditState implements GameState {
 	public void draw() {
 		e_texture.draw();
 		
-		for(Polygon p : polygons) {
+		for(EditObject p : editObjects) {
 			p.draw();
 		}
+		
+		gui.draw();
 	}
 	
 	@Override
@@ -276,16 +352,55 @@ public class EditState implements GameState {
 	}
 	
 	public void undoPush() {
-		ArrayList<Polygon> temp = new ArrayList<>();
+		ArrayList<EditObject> temp = new ArrayList<>();
 		
-		for(int i = 0; i < polygons.size(); i++) {
-			temp.add(polygons.get(i).copy());
+		for(int i = 0; i < editObjects.size(); i++) {
+			temp.add(editObjects.get(i).copy());
 		}
 		
-		undoPolygons.push(temp);
+		undoStack.push(temp);
 	}
 	
-	public void removePolygon() {
-		polygons.remove(polygons.get(currentPolygon));
+	public void removeSelected() {
+		editObjects.remove(editObjects.get(currentPolygon));
+		if(currentPolygon >= editObjects.size()) {
+			currentPolygon = editObjects.size() - 1;
+		}
+		if(editObjects.size() > 0)
+			editObjects.get(currentPolygon).setCurrent(true);
+	}
+	
+	public enum AddMode {
+		POLYGON, ENTITY
+	}
+	
+	public static Texture t_red;
+	
+	private class InputThread implements Runnable {
+		
+		private Scanner scanner;
+		
+		public InputThread() {
+			this.scanner = new Scanner(System.in);
+		}
+		
+		@Override
+		public void run() {
+			while(Game.isRunning()) {
+				String cmd = scanner.nextLine();
+				
+				try {
+					int i = Integer.parseInt(cmd);
+					
+					if(editObjects.get(currentPolygon) instanceof EntityObject) {
+						((EntityObject) editObjects.get(currentPolygon)).value = i;
+						System.out.println("New value: " + i);
+					}
+					
+				} catch (NumberFormatException e) {
+					System.err.println("\"" + cmd + "\" is not a valid integer");
+				}
+			}
+		}
 	}
 }

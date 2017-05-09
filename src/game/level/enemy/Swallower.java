@@ -78,6 +78,7 @@ public class Swallower extends Component {
 	private void devour() {
 		e.transform.scale.x -= .01f;
 		e.transform.scale.y -= .01f;
+		swallowed.kill();
 		swallowed = null;
 		timer = TIMER_START;
 	}

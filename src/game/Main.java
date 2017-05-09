@@ -18,6 +18,7 @@ public class Main {
 		gp.width = 800;
 		gp.height = 600;
 		gp.startState = TG.GS_PLAYING;
+		gp.fullscreen = false;
 		gp.resizable = false;
 		gp.title = "Time Game";
 		gp.vSync = true;
@@ -33,5 +34,5 @@ public class Main {
 		GameShaders.destroyShaders();
 		
 		System.out.println("Game successfully exited");
-	}	
+	}
 }

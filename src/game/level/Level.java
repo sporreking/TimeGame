@@ -2,12 +2,14 @@ package game.level;
 
 import java.awt.List;
 import java.util.ArrayList;
+import java.util.Random;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
 import game.TG;
 import game.level.enemy.Enemy;
+import game.level.enemy.Swallower;
 import game.parallax.ParallaxRender;
 import game.state.Playing;
 import player.Movement;
@@ -52,6 +54,8 @@ public class Level extends Node {
 	
 	private ParallaxRender[] pr_1;
 	private ParallaxRender[] pr_2;
+	
+	private ArrayList<SpawnPoint> spawnPoints;
 	
 	public Level(Player player1, Player player2, LevelData... levelData) {
 		this.player1 = player1;
@@ -98,6 +102,8 @@ public class Level extends Node {
 			}
 		}
 		
+		spawnPoints = new ArrayList<>();
+		
 		for(int i = 0; i < levelData.length; i++) {
 			
 			ArrayList<Shape> shapes = new ArrayList<>();
@@ -118,12 +124,59 @@ public class Level extends Node {
 			player1.get(Body.class).setLayer((short) 0b0000000000000001);
 			worlds[i].addBody(player2.get(Body.class));
 			player2.get(Body.class).setLayer((short) 0b0000000000000010);
+			
+			spawnEntities(i);
 		}
-		Enemy e = new Enemy(this, 0, Enemy.Type.SWALLOWER, .1f, -.4f);
-		enemies.add(e);
-		worlds[0].addBody(e.get(Body.class));
-		System.out.println("TODO: REMOVE ENEMY\nADJUST BG LOADING");
+		
 		terrain[1].setTag("ice");
+		
+		spawnPlayers();
+	}
+	
+	private void spawnPlayers() {
+		if(spawnPoints.size() <= 0) {
+			throw new IllegalStateException("There must be at least one spawnpoint");
+		} else if(spawnPoints.size() == 1) {
+			player1.get(Transform.class).position.x = spawnPoints.get(0).position.x;
+			player1.get(Transform.class).position.y = spawnPoints.get(0).position.y;
+			player2.get(Transform.class).position.x = spawnPoints.get(0).position.x;
+			player2.get(Transform.class).position.y = spawnPoints.get(0).position.y;
+		} else {
+			Random random = new Random();
+			
+			int r1 = random.nextInt(spawnPoints.size());
+			
+			int r2 =random.nextInt(spawnPoints.size());
+			while(r2 == r1) {
+				r2 =random.nextInt(spawnPoints.size());
+			}
+			
+			player1.get(Transform.class).position.x = spawnPoints.get(r1).position.x;
+			player1.get(Transform.class).position.y = spawnPoints.get(r1).position.y;
+			player2.get(Transform.class).position.x = spawnPoints.get(r2).position.x;
+			player2.get(Transform.class).position.y = spawnPoints.get(r2).position.y;
+		}
+		
+		player1.get(Transform.class).position.x += .5f;
+		player2.get(Transform.class).position.x += .5f;
+		
+		currentSheet = spawnPoints.get(0).layer;
+	}
+	
+	private void spawnEntities(int i) {
+		
+		for(EntityData ed : data[i].entities) {
+			System.out.println(ed.value);
+			switch(ed.id) {
+			case 0: // Spawn points
+				spawnPoints.add(new SpawnPoint(ed.position, i));
+				break;
+			case 1: // Swallower
+				enemies.add(new Enemy(this, i, Enemy.Type.SWALLOWER,
+						ed.position.x + .5f, ed.position.y));
+				break;
+			}
+		}
 	}
 	
 	private void createParallax() {
@@ -286,5 +339,15 @@ public class Level extends Node {
 	public void destroy() {
 		for(int i = 0; i < data.length; i++)
 			data[i].spriteSheet.destroy();
+	}
+	
+	private class SpawnPoint {
+		public Vector2f position;
+		public int layer;
+		
+		public SpawnPoint(Vector2f position, int layer) {
+			this.position = position;
+			this.layer = layer;
+		}
 	}
 }

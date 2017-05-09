@@ -19,4 +19,7 @@ public class LevelData {
 	// Terrain
 	public ArrayList<Vector2f[]> terrain;
 	
+	// Entities
+	public ArrayList<EntityData> entities;
+	
 }
