@@ -8,6 +8,10 @@ import game.level.player.PlayerLogic;
 import game.level.player.Hud;
 import game.level.player.Player;
 import game.level.resources.Battery;
+import game.level.resources.Connectable;
+import game.level.resources.Movable;
+import game.level.resources.PushDownDoor;
+import game.level.resources.PressurePlate;
 import game.level.resources.Rock;
 import game.parallax.ParallaxRender;
 import game.state.Playing;
@@ -120,6 +124,18 @@ public class Level extends Node {
 		//worlds[0].addBody(e.get(Body.class));
 		entities.add(new Battery(this, 1, -0.1f, -0.4f));
 		entities.add(new Rock(this, 0, 0.1f, 0.0f));
+		
+		PushDownDoor temp = new PushDownDoor(this, 0, 0.2f, 0.2f);
+		temp.setA(new Vector2f(0,  0.5f));
+		temp.setB(new Vector2f(0, -0.4f));
+		temp.setSpeed(0.1f);
+		
+		PressurePlate plate = new PressurePlate(this, 0, -0.1f, -0.4f);
+		plate.connect(temp.getConnectable());
+
+		entities.add(plate);
+		entities.add(temp);
+		
 		System.out.println("TODO: REMOVE ENEMY\nADJUST BG LOADING");
 		terrain[1].setTag("ice");
 	}

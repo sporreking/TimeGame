@@ -35,7 +35,8 @@ public class AnimationHandler extends Component {
 		}
 		
 		if(player.running != running) {
-			player.remove(Animation.class);
+			if (player.has(Animation.class))
+				player.remove(Animation.class);
 			animationToAdd = player.running ? (player.isBoy ? dude1_run : dude2_run)
 					: (player.isBoy ? dude1_idle : dude2_idle);
 			

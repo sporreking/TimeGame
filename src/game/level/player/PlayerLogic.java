@@ -247,7 +247,7 @@ public class PlayerLogic extends Launchable {
 					if (player.grounded) {
 						for (Collision c : body.getCollisions()) {
 							// If we get hit by a rock
-							if (c.other.getTag().equals("rock") && c.other.getVelocity().lengthSquared() >= 0.01f) {
+							if (c.other.getTag().equals("rock") && c.other.getVelocity().lengthSquared() >= 0.1f) {
 								state = PlayerStates.HIT;
 								body.setTrigger(true);
 								
@@ -262,9 +262,17 @@ public class PlayerLogic extends Launchable {
 								hitTimer = hitTime;
 								body.setVelocity(v.scale(hitStrength));
 								return;
-							} else if (c.normal.dot(UP) > minGroundAngle && !c.other.isTrigger()) {
-								Vector2f n = c.normal.clone();
-								v.add(n.scale(-0.9f * n.dot(v)));
+							} else if (c.normal.dot(UP) > minGroundAngle) {
+									
+								if (!c.other.isTrigger()) {
+									Vector2f n = c.normal.clone();
+									v.add(n.scale(-0.9f * n.dot(v)));
+								}
+								
+								if (c.other.getTag().equals("moving-platform")) {
+									v.add(c.other.getVelocity());
+									
+								}
 							}
 						}
 						v.y = 0;
@@ -327,6 +335,7 @@ public class PlayerLogic extends Launchable {
 		player.grounded = false;
 		for (Collision c : body.getCollisions()) {
 			if (c.other.isTrigger()) continue;
+			if (c.other.getTag().equals("moving-platform")) c.normal.negate();
 			player.grounded = c.normal.dot(UP) > minGroundAngle;
 			thrown = false;
 			if (player.grounded)

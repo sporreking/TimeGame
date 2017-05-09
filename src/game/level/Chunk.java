@@ -10,7 +10,7 @@ public class Chunk extends Entity {
 	
 	public static final int SIZE = 128;
 	public static final float SCALE = 1f;
-	public static final float PIXEL_SCALE = SCALE / SIZE;
+	public static final float PIXEL_SCALE = (float) ((float) SCALE / (float) SIZE);
 	
 	public Chunk(int x, int y, Texture texture) {
 		Transform transform = new Transform();
