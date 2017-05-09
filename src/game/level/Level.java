@@ -1,34 +1,36 @@
 package game.level;
 
-import java.awt.List;
 import java.util.ArrayList;
-
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL11;
 
 import game.TG;
 import game.level.enemy.Enemy;
+import game.level.player.PlayerLogic;
+import game.level.player.Hud;
+import game.level.player.Player;
+import game.level.resources.Battery;
+import game.level.resources.Connectable;
+import game.level.resources.Movable;
+import game.level.resources.PushDownDoor;
+import game.level.resources.PressurePlate;
+import game.level.resources.Rock;
 import game.parallax.ParallaxRender;
 import game.state.Playing;
-import player.Movement;
-import player.Player;
+import sk.audio.Audio;
+import sk.audio.AudioManager;
+import sk.debug.Debug;
 import sk.entity.Container;
-import sk.entity.Entity;
 import sk.entity.Node;
-import sk.entity.Root;
 import sk.game.Time;
 import sk.game.Window;
 import sk.gfx.Camera;
-import sk.gfx.Mesh;
 import sk.gfx.Renderer;
-import sk.gfx.Texture;
 import sk.gfx.Transform;
-import sk.gfx.Vertex2D;
 import sk.physics.Body;
 import sk.physics.Shape;
+import sk.physics.TriggerBody;
 import sk.physics.World;
-import sk.util.io.Keyboard;
 import sk.util.vector.Vector2f;
+import sk.util.vector.Vector3f;
 
 public class Level extends Node {
 	
@@ -48,19 +50,26 @@ public class Level extends Node {
 	private Renderer[] r_bg;
 	private ParallaxRender[] pr_frnt;
 	
+	public static final short P1_LAYER = 0b0000000000000001;
+	public static final short P2_LAYER = 0b0000000000000010;
+	
 	public Player player1, player2;
+	public Hud hud;
 	
 	private Container enemies;
+	private Container entities;
 	
 	public Level(Player player1, Player player2, LevelData... levelData) {
 		this.player1 = player1;
 		this.player2 = player2;
 		this.data = levelData;
 		
-		enemies = new Container();
+		entities = new Container();
 		
-		player1.get(Movement.class).setLevel(this);
-		player2.get(Movement.class).setLevel(this);
+		player1.get(PlayerLogic.class).setLevel(this);
+		player2.get(PlayerLogic.class).setLevel(this);
+		
+		hud = new Hud();
 		
 		worlds = new World[levelData.length];
 		terrain = new Body[levelData.length];
@@ -71,12 +80,8 @@ public class Level extends Node {
 			
 			worlds[i].gravity = new Vector2f(0, -2.5f);
 			
-			r_bg[i] = new Renderer(Mesh.QUAD);
-			r_bg[i].camera = Camera.GUI;
-			r_bg[i].transform.scale.x = 4 * 3f / 4f;
-			r_bg[i].transform.scale.y = 2;
-			r_bg[i].setTexture(new Texture(Playing.PREFIX_URL + TG.GS_PLAYING.chapter
-					+ "/" + "bg_" + i + ".png"));
+			r_bg[i] = new BackgroundRenderer(Playing.PREFIX_URL + TG.GS_PLAYING.chapter
+					+ "/" + "bg_" + i + ".png");
 			
 			worlds[i].gravity = new Vector2f(0, -2.8f);
 		}
@@ -103,17 +108,34 @@ public class Level extends Node {
 			
 			terrain[i] = new Body(false, 1, 100, 0, shapes);
 			terrain[i].decouple(t);
-			terrain[i].setLayer((short) 0b0000000000000011);
+			terrain[i].setLayer((short) (P2_LAYER | P1_LAYER));
 			
 			worlds[i].addBody(terrain[i]);
-			worlds[i].addBody(player1.get(Body.class));
-			player1.get(Body.class).setLayer((short) 0b0000000000000001);
-			worlds[i].addBody(player2.get(Body.class));
-			player2.get(Body.class).setLayer((short) 0b0000000000000010);
+			worlds[i].addBody(player1.body);
+			worlds[i].addBody(player1.pickupTrigger);
+			worlds[i].addBody(player2.body);
+			worlds[i].addBody(player2.pickupTrigger);
+
+			player1.get(Body.class).setLayer((short) P1_LAYER);
+			player2.get(Body.class).setLayer((short) P2_LAYER);
 		}
-		Enemy e = new Enemy(this, 0, Enemy.Type.SWALLOWER, .1f, -.4f);
-		enemies.add(e);
-		worlds[0].addBody(e.get(Body.class));
+		//Enemy e = new Enemy(this, 0, Enemy.Type.SWALLOWER, .1f, -.4f);
+		//enemies.add(e);
+		//worlds[0].addBody(e.get(Body.class));
+		entities.add(new Battery(this, 1, -0.1f, -0.4f));
+		entities.add(new Rock(this, 0, 0.1f, 0.0f));
+		
+		PushDownDoor temp = new PushDownDoor(this, 0, 0.2f, 0.2f);
+		temp.setA(new Vector2f(0,  0.5f));
+		temp.setB(new Vector2f(0, -0.4f));
+		temp.setSpeed(0.1f);
+		
+		PressurePlate plate = new PressurePlate(this, 0, -0.1f, -0.4f);
+		plate.connect(temp.getConnectable());
+
+		entities.add(plate);
+		entities.add(temp);
+		
 		System.out.println("TODO: REMOVE ENEMY\nADJUST BG LOADING");
 		terrain[1].setTag("ice");
 	}
@@ -121,6 +143,9 @@ public class Level extends Node {
 	public void switchTime() {
 		currentSheet++;
 		currentSheet %= 2;
+		
+		player1.switchTime();
+		player2.switchTime();
 	}
 	
 	private void checkBounds() {
@@ -185,6 +210,9 @@ public class Level extends Node {
 		Camera.DEFAULT.position.add(
 				targetPosition.sub(Camera.DEFAULT.position)
 				.scale((float) (CameraMoveSpeed * Time.getDelta())));
+		
+		// Update the position of the listener
+		AudioManager.setListenerPosition(new Vector3f(Camera.DEFAULT.position.x, Camera.DEFAULT.position.y, 0));
 	}
 	
 	@Override
@@ -197,9 +225,12 @@ public class Level extends Node {
 		player1.update(delta);
 		player2.update(delta);		
 		
-		enemies.update(delta);
+		//enemies.update(delta);
+		entities.update(delta);
 		
-		checkDeaths();
+		hud.update(delta);
+		
+		//checkDeaths();
 		
 		adjustCamera();
 	}
@@ -221,15 +252,24 @@ public class Level extends Node {
 	@Override
 	public void draw() {
 		r_bg[currentSheet].draw();
-		player1.draw();
-		player2.draw();
+		
+		if (player2.playerLogic.isHeld()) {
+			player2.draw();			
+			player1.draw();
+		} else {
+			player1.draw();
+			player2.draw();			
+		}
 		for(int i = 0; i < data[0].chunksY; i++) {
 			for(int j = 0; j < data[0].chunksX; j++) {
 				chunks[currentSheet][i][j].draw();
 			}
 		}
 		
-		enemies.draw();
+		//enemies.draw();
+		entities.draw();
+		
+		hud.draw();
 	}
 	
 	@Override

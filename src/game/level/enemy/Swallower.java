@@ -1,6 +1,6 @@
 package game.level.enemy;
 
-import player.Player;
+import game.level.player.Player;
 import sk.entity.Component;
 import sk.entity.Entity;
 import sk.gfx.Mesh;
@@ -52,19 +52,19 @@ public class Swallower extends Component {
 			return;
 		
 		if(swallowed == null) {
-			if(e.get(Body.class).isCollidingWithTag("p1")) {
+			if(e.get(Body.class).isCollidingWithTags("p1")) {
 				swallow(e.l.player1);
-			} else if(e.get(Body.class).isCollidingWithTag("p2")) {
+			} else if(e.get(Body.class).isCollidingWithTags("p2")) {
 				swallow(e.l.player2);
 			}
 			
 			return;
 		} else if(swallowed == e.l.player1) {
-			if(e.get(Body.class).isCollidingWithTag("p2")) {
+			if(e.get(Body.class).isCollidingWithTags("p2")) {
 				pop();
 			}
 		} else if(swallowed == e.l.player2) {
-			if(e.get(Body.class).isCollidingWithTag("p1")) {
+			if(e.get(Body.class).isCollidingWithTags("p1")) {
 				pop();
 			}
 		}

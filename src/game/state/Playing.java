@@ -5,12 +5,17 @@ import java.util.ArrayList;
 
 import org.lwjgl.glfw.GLFW;
 
+import game.TG;
 import game.level.Level;
 import game.level.LevelLoader;
-import player.Movement;
-import player.Player;
+import game.level.player.PlayerLogic;
+import game.level.player.Player;
+import sk.audio.Audio;
+import sk.audio.AudioManager;
 import sk.entity.Entity;
+import sk.game.Game;
 import sk.gamestate.GameState;
+import sk.gamestate.GameStateManager;
 import sk.gfx.Camera;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
@@ -70,9 +75,18 @@ public class Playing implements GameState {
 		current = 0;
 	}
 	
+	Audio s;
+	
 	@Override
 	public void update(double delta) {
 		level.update(delta);
+		
+		if (Keyboard.pressed(GLFW.GLFW_KEY_ESCAPE))
+			Game.stop();
+		
+		if (Keyboard.pressed(GLFW.GLFW_KEY_R)) {
+			GameStateManager.enterState(TG.GS_PLAYING);
+		}
 	}
 	
 	@Override
