@@ -1,13 +1,22 @@
 package editor;
 
+import java.awt.BufferCapabilities;
 import java.awt.Font;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Stack;
 
+import javax.imageio.ImageIO;
+
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL13;
 
+import game.level.Chunk;
 import game.level.Level;
 import game.level.LevelData;
 import game.level.LevelLoader;
@@ -15,6 +24,7 @@ import sk.entity.Container;
 import sk.entity.Entity;
 import sk.entity.Node;
 import sk.game.Game;
+import sk.game.Window;
 import sk.gamestate.GameState;
 import sk.gfx.Camera;
 import sk.gfx.Mesh;
@@ -260,6 +270,47 @@ public class EditState implements GameState {
 		}
 		
 		if(Keyboard.down(GLFW.GLFW_KEY_LEFT_CONTROL)) {
+			
+			if(Keyboard.down(GLFW.GLFW_KEY_LEFT_SHIFT) && Keyboard.pressed(GLFW.GLFW_KEY_V)) {
+				Vector2f b_scale = Camera.DEFAULT.scale;
+				Vector2f b_position = Camera.DEFAULT.position;
+				
+				Vector2f scale = new Vector2f(chunksX / 2f * .75f, chunksY / 2f);
+				Vector2f position = new Vector2f(0, 0);
+				
+				Camera.DEFAULT.scale = scale;
+				Camera.DEFAULT.position = position;
+				
+				Window.swapBuffers();
+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+				
+				for(EditObject p : editObjects) {
+					p.draw();
+				}
+				
+				int[] pixels = new int[800 * 600];
+				GL11.glReadPixels(0, 0, 800, 600, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, pixels);
+				
+				BufferedImage image = new BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB);
+				image.setRGB(0, 0, 800, 600, pixels, 0, 800);
+				
+				BufferedImage out = new BufferedImage(Chunk.SIZE * chunksX, Chunk.SIZE * chunksY,
+						BufferedImage.TYPE_INT_ARGB);
+				out.getGraphics().drawImage(image, 0, Chunk.SIZE * chunksY, Chunk.SIZE * chunksX,
+						-Chunk.SIZE * chunksY, null);
+				
+				try {
+					ImageIO.write(out, "png", new File("output.png"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
+				Camera.DEFAULT.scale = b_scale;
+				Camera.DEFAULT.position = b_position;
+				
+				System.out.println("Outputed");
+			}
+			
 			if(Keyboard.pressed(GLFW.GLFW_KEY_Z)) {
 				if(undoStack.elements() > 0)
 					editObjects = undoStack.pop();
@@ -398,6 +449,12 @@ public class EditState implements GameState {
 					}
 					
 				} catch (NumberFormatException e) {
+					if(cmd.equals("stop")) {
+						Game.stop();
+						
+						return;
+					}
+					
 					System.err.println("\"" + cmd + "\" is not a valid integer");
 				}
 			}
