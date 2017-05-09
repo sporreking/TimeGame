@@ -60,6 +60,7 @@ public class EntityObject implements EditObject {
 		buffer.putInt(value);
 		buffer.putFloat(position.x);
 		buffer.putFloat(position.y);
+
 	}
 	
 	@Override
@@ -69,7 +70,6 @@ public class EntityObject implements EditObject {
 
 	@Override
 	public void update(double delta) {
-		
 	}
 
 	@Override
@@ -104,6 +104,15 @@ public class EntityObject implements EditObject {
 			renderer.draw();
 	}
 
+	public Vector2f getPosition() {
+		return position;
+	}
+	
+	public void updatePosition(Vector2f position) {
+		this.position = position;
+		renderer.transform.position = new Vector2f(position.x * 4.0f / 3.0f, position.y);
+	}
+	
 	@Override
 	public void setCurrent(boolean current) {
 		this.current = current;

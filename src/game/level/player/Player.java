@@ -1,18 +1,23 @@
-package player;
+package game.level.player;
 
 import game.level.Chunk;
-import game.level.Level;
+import game.level.resources.Launchable;
+import sk.debug.Debug;
 import sk.entity.Entity;
-import sk.gfx.Animation;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
 import sk.gfx.Transform;
 import sk.gfx.Vertex2D;
 import sk.physics.Body;
+import sk.physics.Collision;
 import sk.physics.Shape;
+import sk.physics.TriggerBody;
 import sk.util.vector.Vector2f;
 
 public class Player extends Entity {
+	
+	static float TIME_STEP = 1 / 60.0f;
+	float timer = 0;
 	
 	int height = 12;
 	int width = 8;
@@ -22,11 +27,12 @@ public class Player extends Entity {
 	boolean isBoy;
 	boolean alive = true;
 	
-	Transform transform;
-	Body body;
-	Movement movement;
-	Renderer renderer;
-	AnimationHandler ah;
+	public Transform transform;
+	public Body body;
+	public TriggerBody pickupTrigger;
+	public PlayerLogic playerLogic;
+	public Renderer renderer;
+	public AnimationHandler ah;
 	
 	protected boolean running = false;
 	protected boolean grounded = false;
@@ -50,7 +56,10 @@ public class Player extends Entity {
 		
 		body.setOnlyOverlap(true);
 		
-		movement = new Movement(isBoy);
+		pickupTrigger = new TriggerBody("reach", Shape.GEN_QUAD(0.75f));
+		pickupTrigger.setTrigger(true);
+		
+		playerLogic = new PlayerLogic(isBoy);
 		renderer = new Renderer(new Mesh(new Vertex2D[] {
 				new Vertex2D(-1f, .4f / .4f, 0, 0),
 				new Vertex2D(1f, .4f / .4f, 1, 0),
@@ -61,8 +70,9 @@ public class Player extends Entity {
 		ah = new AnimationHandler(this);
 		
 		add(transform);
-		add(1, body);
-		add(-1, movement);
+		add(body);
+		add(pickupTrigger);
+		add(playerLogic);
 		add(renderer);
 		add(ah);
 	}
@@ -86,18 +96,26 @@ public class Player extends Entity {
 			return;
 		}
 
-		if(body.hasDeepCollision(1f / 128 * 5)) {
+		if (!playerLogic.isHeld() && !body.isTrigger()) {
+			for (Collision c : body.getCollisions()) {
+				if (c.other.isTrigger()) continue;
+				if (c.collisionDepth > 1f / 128 * 5) {
+					kill();
+					return;
+				}
+			}
+		}
+		
+		if (body.isCollidingWithTags("death")) {
 			kill();
 			return;
 		}
 		
-		if (body.isCollidingWithTag("death")) {
-			kill();
-			return;
+		timer += delta;
+		while (timer > TIME_STEP) {
+			timer -= TIME_STEP;
+			super.update(TIME_STEP);
 		}
-		
-	
-		super.update(delta);
 		
 		if (ah.animationToAdd != null) {
 			add(ah.animationToAdd);
@@ -111,5 +129,10 @@ public class Player extends Entity {
 		if (alive && enabled) {
 			super.draw();
 		}
+	}
+
+	public void switchTime() {
+		if (!playerLogic.launchableIsPlayer())
+			playerLogic.tryThrow();
 	}
 }

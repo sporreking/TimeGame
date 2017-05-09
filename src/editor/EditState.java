@@ -345,6 +345,47 @@ public class EditState implements GameState {
 				LevelLoader.save(path + ".level",
 						(short) chunkPixelSize, (short) chunksX, (short) chunksY, editObjects);
 			}
+			
+		}
+		// @Move
+		if (currentPolygon >= 0 && editObjects.get(currentPolygon) instanceof EntityObject) {
+			Vector2f p = ((EntityObject) editObjects.get(currentPolygon)).getPosition();
+			
+			if (Keyboard.down(GLFW.GLFW_KEY_UP)) {
+				if (tr_gridSnap && Keyboard.pressed(GLFW.GLFW_KEY_UP)) {
+					p.y = Math.round(p.y / pixelSize) * pixelSize + pixelSize;
+				} else if (!tr_gridSnap) {
+					p.y += 0.1f * delta;
+				}
+			}
+			
+			if (Keyboard.down(GLFW.GLFW_KEY_DOWN)) {
+				if (tr_gridSnap && Keyboard.pressed(GLFW.GLFW_KEY_DOWN)) {
+					p.y = Math.round(p.y / pixelSize) * pixelSize - pixelSize;
+				} else if (!tr_gridSnap) {
+					p.y -= 0.1f * delta;
+				}
+			}
+			
+			float xPixelSize = pixelSize * 3.0f / 4.0f;
+
+			if (Keyboard.down(GLFW.GLFW_KEY_RIGHT)) {
+				if (tr_gridSnap && Keyboard.pressed(GLFW.GLFW_KEY_RIGHT)) {
+					p.x = Math.round(p.x / xPixelSize) * xPixelSize + xPixelSize;
+				} else if (!tr_gridSnap) {
+					p.x += 0.1f * delta;
+				}
+			}
+			
+			if (Keyboard.down(GLFW.GLFW_KEY_LEFT)) {
+				if (tr_gridSnap && Keyboard.pressed(GLFW.GLFW_KEY_LEFT)) {
+					p.x = Math.round(p.x / xPixelSize) * xPixelSize - xPixelSize;
+				} else if (!tr_gridSnap) {
+					p.x -= 0.1f * delta;
+				}
+			}
+			
+			((EntityObject) editObjects.get(currentPolygon)).updatePosition(p);
 		}
 		
 		if(Keyboard.pressed(GLFW.GLFW_KEY_X) && editObjects.size() > 0) {
@@ -359,19 +400,21 @@ public class EditState implements GameState {
 	
 	private void updateCamera(double delta) {
 		
-		if(Keyboard.down(GLFW.GLFW_KEY_W) || Keyboard.down(GLFW.GLFW_KEY_UP)) {
+		
+		
+		if(Keyboard.down(GLFW.GLFW_KEY_W)) {
 			Camera.DEFAULT.position.y += delta;
 		}
 		
-		if(Keyboard.down(GLFW.GLFW_KEY_S)|| Keyboard.down(GLFW.GLFW_KEY_DOWN)) {
+		if(Keyboard.down(GLFW.GLFW_KEY_S)) {
 			Camera.DEFAULT.position.y -= delta;
 		}
 		
-		if(Keyboard.down(GLFW.GLFW_KEY_A) || Keyboard.down(GLFW.GLFW_KEY_LEFT)) {
+		if(Keyboard.down(GLFW.GLFW_KEY_A)) {
 			Camera.DEFAULT.position.x -= delta;
 		}
 		
-		if(Keyboard.down(GLFW.GLFW_KEY_D) || Keyboard.down(GLFW.GLFW_KEY_RIGHT)) {
+		if(Keyboard.down(GLFW.GLFW_KEY_D)) {
 			Camera.DEFAULT.position.x += delta;
 		}
 		

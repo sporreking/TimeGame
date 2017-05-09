@@ -15,7 +15,8 @@ public class Editor {
 
 		System.out.println("Starting editor...");
 		
-		String path = read("Enter file name without extension");
+		//String path = read("Enter file name without extension");
+		String path = "res/level/test/lvl1_0";
 		boolean hasData = ask("Should an already existing .level file be loaded? (y/n)");
 		
 		int cx = -1;
