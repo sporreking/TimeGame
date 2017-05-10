@@ -5,16 +5,16 @@ import sk.gfx.Transform;
 import sk.physics.Body;
 import sk.util.vector.Vector2f;
 
-public class Movable extends Component {
+public class Moveable extends Component {
 	
 	Body body;
 	Transform transform;
 	
 	Vector2f[] targets;
 	int target = 0;
-	float speed = 1;
+	float speed = 0.1f;
 	
-	public Movable(Vector2f a, Vector2f b, int target, float speed) {
+	public Moveable(Vector2f a, Vector2f b, int target, float speed) {
 		targets = new Vector2f[2];
 		targets[0] = a.clone();
 		targets[1] = b.clone();

@@ -1,0 +1,26 @@
+A list of all the entities with ID and some extra information.
+
+// GENERAL //
+0 : Spawn point
+1 : Exit point
+
+// ENEMIES //
+2 : Swallower
+3 : -- DONT KNOW --
+
+// SPAWNABLES // 
+4 : Key
+5 : Locked Door
+6 : Rock
+
+// DOORS //
+7 : Pressure Plate - int (bitmask for doors)
+8 : Oneshot Pressure Plate - int (bitmask for doors)
+9 : Movable Door - int (only power of 2 must be unique)
+10: Door pos - int (only power of 2 must be unique)
+
+// EXTRA //
+
+
+
+// TODO: Key, Exit, LockedDoor, PlayerState

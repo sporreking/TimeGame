@@ -1,6 +1,7 @@
 package game.level;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 import game.TG;
@@ -9,7 +10,11 @@ import game.level.player.PlayerLogic;
 import game.level.player.Hud;
 import game.level.player.Player;
 import game.level.resources.Battery;
-import game.level.resources.PushDownDoor;
+import game.level.resources.Exit;
+import game.level.resources.Key;
+import game.level.resources.LockedDoor;
+import game.level.resources.MoveableDoor;
+import game.level.resources.OneshotPressurePlate;
 import game.level.resources.PressurePlate;
 import game.level.resources.Rock;
 import game.parallax.ParallaxRender;
@@ -114,7 +119,7 @@ public class Level extends Node {
 			
 			terrain[i] = new Body(false, 1, 100, 0, shapes);
 			terrain[i].decouple(t);
-			terrain[i].setLayer((short) (P2_LAYER | P1_LAYER));
+			terrain[i].setLayer((short) (0b100 | P2_LAYER | P1_LAYER));
 			
 			worlds[i].addBody(terrain[i]);
 
@@ -127,24 +132,8 @@ public class Level extends Node {
 			player2.get(Body.class).setLayer((short) P2_LAYER);
 			spawnEntities(i);
 		}
-		//Enemy e = new Enemy(this, 0, Enemy.Type.SWALLOWER, .1f, -.4f);
-		//enemies.add(e);
-		//worlds[0].addBody(e.get(Body.class));
-		entities.add(new Battery(this, 1, -0.1f, -0.4f));
-		entities.add(new Rock(this, 0, 0.1f, 0.0f));
 		
-		PushDownDoor temp = new PushDownDoor(this, 0, 0.2f, 0.2f);
-		temp.setA(new Vector2f(0,  0.5f));
-		temp.setB(new Vector2f(0, -0.4f));
-		temp.setSpeed(0.1f);
-		
-		PressurePlate plate = new PressurePlate(this, 0, -0.1f, -0.4f);
-		plate.connect(temp.getConnectable());
-
-		entities.add(plate);
-		entities.add(temp);
-		
-		System.out.println("TODO: REMOVE ENEMY\nADJUST BG LOADING");
+		entities.add(new Key(this, 0, 0, 0));
 
 		terrain[1].setTag("ice");
 		
@@ -180,21 +169,72 @@ public class Level extends Node {
 		
 		currentSheet = spawnPoints.get(0).layer;
 	}
+
+	private void spawnEntities(int i) {		
+		// Holds the door positons temporarily
+		HashMap<Integer, Vector2f> doorPositions = new HashMap<Integer, Vector2f>();
+		HashMap<Integer, MoveableDoor> doors     = new HashMap<Integer, MoveableDoor>();
+		ArrayList<PressurePlate> plates          = new ArrayList<PressurePlate>();
 	
-	private void spawnEntities(int i) {
-		
 		for(EntityData ed : data[i].entities) {
-			System.out.println(ed.value);
 			switch(ed.id) {
+			// GENERAL //
 			case 0: // Spawn points
 				spawnPoints.add(new SpawnPoint(ed.position, i));
 				break;
-			case 1: // Swallower
+			case 1: // Exit
+				entities.add(new Exit(this, i, ed.position.x, ed.position.y));
+				break;
+			// ENEMIES //
+			case 2: // Swallower
 				enemies.add(new Enemy(this, i, Enemy.Type.SWALLOWER,
 						ed.position.x + .5f, ed.position.y));
 				break;
-			}
+			case 3: // UNKNOWN
+				enemies.add(new Enemy(this, i, Enemy.Type.SWALLOWER,
+						ed.position.x + .5f, ed.position.y));
+				break;
+			// SPAWNABLE //
+			case 4: // Key
+				entities.add(new Key(this, i, ed.position.x, ed.position.y));
+				break;
+			case 5: // Locked door
+				entities.add(new LockedDoor(this, i, ed.position.x, ed.position.y));
+				break;
+			case 6: // Rock
+				entities.add(new Rock(this, i, ed.position.x, ed.position.y));
+				break;
+			// DOORS //
+			case 7: // Pressure Plate
+				PressurePlate plate = new PressurePlate(this, i, ed.position.x, ed.position.y);
+				plates.add(plate);
+				entities.add(plate);
+				break;
+			case 8: // Oneshot Pressure Plate
+				OneshotPressurePlate oplate = new OneshotPressurePlate(this, i, ed.position.x, ed.position.y);
+				plates.add(oplate);
+				entities.add(oplate);
+				break;
+			case 9: // Movable Door
+				MoveableDoor door = new MoveableDoor(this, i, ed.position.x, ed.position.y);
+				doors.put(ed.value, door);
+				entities.add(door);
+				break;
+			case 10: // Door Position
+				doorPositions.put(ed.value, ed.position);
+				break;
+			default:
+				System.out.println("Error in level file, unknown entity: " + ed.id);
+				break;
+		 	}	
 		}
+
+		// Linkup all the doors
+		//
+		// Pairup all doors and setTargetB to doorPosition.value
+		//
+		// Loopthrough and push the bits one bit to the right,
+		// when you find one that is 1, link it with the corresponding door.
 	}
 	
 	private void createParallax() {

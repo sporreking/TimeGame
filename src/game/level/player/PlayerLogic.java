@@ -9,6 +9,7 @@ import sk.util.vector.Vector2f;
 import org.lwjgl.glfw.GLFW;
 
 import game.level.Level;
+import game.level.resources.Key.KeyLauncher;
 import game.level.resources.Launchable;
 import game.level.resources.Rock.RockLauncher;
 import sk.entity.Component;
@@ -58,6 +59,7 @@ public class PlayerLogic extends Launchable {
 	private boolean thrown = false;
 	private float throwSpeed = 1.0f;
 	
+	private Vector2f platformVelocity = new Vector2f();
 	
 	private PlayerStates state = PlayerStates.NORMAL;
 
@@ -111,7 +113,7 @@ public class PlayerLogic extends Launchable {
 	
 	@Override
 	public void update(double delta) {		
-		// Switcher
+		// @Switcher
 		switchTimer -= delta;
 		if (Keyboard.pressed(keySwitch) && switchTimer < 0 && switchTurn == isBoy) {
 			if (Hud.getEnergy() != 0) {
@@ -122,7 +124,7 @@ public class PlayerLogic extends Launchable {
 			}
 		}
 
-		// Picking up / Throwing
+		// @Picking up / Throwing
 		if (Keyboard.pressed(keyPickup) && !holding) {
 			Collision[] cs = player.pickupTrigger.getCollisions();
 			for (Collision c : cs) {
@@ -131,6 +133,9 @@ public class PlayerLogic extends Launchable {
 				
 				if (l == null) 
 					l = c.other.getParent().get(RockLauncher.class);
+
+				if (l == null) 
+					l = c.other.getParent().get(KeyLauncher.class);
 
 				if (l != null) {
 					if (l.pickup(player, holdPos)) {
@@ -208,6 +213,10 @@ public class PlayerLogic extends Launchable {
 		
 			float friction = player.grounded ? (onIce ? iceFriction : groundFriction) : airFriction;
 			Vector2f bodyVelocity = body.getVelocity(); 
+			// Makesure we don't mess with the movement of the platform
+			bodyVelocity.sub(platformVelocity);
+			platformVelocity.x = 0;
+			platformVelocity.y = 0;
 			
 			// Add in the velocity we normally have
 				v = Vector2f.add(
@@ -263,19 +272,19 @@ public class PlayerLogic extends Launchable {
 								body.setVelocity(v.scale(hitStrength));
 								return;
 							} else if (c.normal.dot(UP) > minGroundAngle) {
-									
-								if (!c.other.isTrigger()) {
+								// @Moving-Platforms
+								if (c.other.getTag().equals("moving-platform")) {
+									platformVelocity.add(c.other.getVelocity());
+									transform.position.sub(c.normal.clone().scale(c.collisionDepth * c.other.getVelocity().dot(c.normal)));
+								} else if (!c.other.isTrigger()) {
 									Vector2f n = c.normal.clone();
 									v.add(n.scale(-0.9f * n.dot(v)));
 								}
 								
-								if (c.other.getTag().equals("moving-platform")) {
-									v.add(c.other.getVelocity());
-									
-								}
 							}
 						}
 						v.y = 0;
+						v.add(platformVelocity);
 					} else {
 						for (Collision c : body.getCollisions()) {
 							if (!c.other.isTrigger()) {
