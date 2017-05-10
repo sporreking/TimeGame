@@ -58,6 +58,7 @@ public class PlayerLogic extends Launchable {
 	private Launchable launchable = null;
 	private boolean thrown = false;
 	private float throwSpeed = 1.0f;
+	private boolean lastMoveRight = true;
 	
 	private Vector2f platformVelocity = new Vector2f();
 	
@@ -93,7 +94,7 @@ public class PlayerLogic extends Launchable {
 		keyJump 	= isBoy ? GLFW.GLFW_KEY_W : GLFW.GLFW_KEY_UP;
 		keySwitch 	= isBoy ? GLFW.GLFW_KEY_E : GLFW.GLFW_KEY_PERIOD;
 		keyDown		= isBoy ? GLFW.GLFW_KEY_S : GLFW.GLFW_KEY_DOWN;
-		keyPickup	= isBoy ? GLFW.GLFW_KEY_Q : GLFW.GLFW_KEY_L;
+		keyPickup	= isBoy ? GLFW.GLFW_KEY_Q : GLFW.GLFW_KEY_COMMA;
 	}
 	
 	@Override
@@ -148,6 +149,11 @@ public class PlayerLogic extends Launchable {
 		} else if (Keyboard.pressed(keyPickup)) {
 			Vector2f dir = new Vector2f(0, 0.75f * jumpVel);
 			
+			if (lastMoveRight) 
+				dir.x = -throwSpeed * 0.1f;
+			else
+				dir.x = throwSpeed * 0.1f;
+			
 			if (body.getVelocity().x > 0.1)
 				dir.x += throwSpeed;
 			
@@ -199,6 +205,9 @@ public class PlayerLogic extends Launchable {
 				v.y -= fallAcc * delta;
 			}
 			
+			if (Math.abs(v.x) < 0.01f) {
+				lastMoveRight = v.x > 0;
+			}
 			
 			if(Math.abs(v.x) > 0) {
 				player.running = true;

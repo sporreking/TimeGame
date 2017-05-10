@@ -224,6 +224,9 @@ public class Level extends Node {
 			case 10: // Door Position
 				doorPositions.put(ed.value, ed.position);
 				break;
+			// FOREGOTTEN STUFF //
+			case 11:
+				entities.add(new Battery(this, i, ed.position.x, ed.position.y));
 			default:
 				System.out.println("Error in level file, unknown entity: " + ed.id);
 				break;

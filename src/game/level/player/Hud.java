@@ -21,6 +21,8 @@ public class Hud extends Entity {
 	static private int score;
 	static private float energy;
 	
+	static private float energyDecreaseRate = 0.05f;
+	
 	Entity energyBar, scoreLabel;
 	GUIText scoreText;
 	
@@ -74,7 +76,7 @@ public class Hud extends Entity {
 		scoreText.setText("score: " + score);
 		scoreLabel.get(GUIElement.class).setText(scoreText);
 		
-		energy -= delta * 0.1f;
+		energy -= delta * energyDecreaseRate;
 		if (energy < 0) {
 			energy = 0;
 		} else if (energy > 1) {

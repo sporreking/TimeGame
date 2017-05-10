@@ -50,6 +50,7 @@ public class Exit extends Entity {
 
 	@Override
 	public void update(double delta) {
+		if (level.currentSheet != layer) return;
 		boolean p1 = false;
 		boolean p2 = false;
 		for (Collision c : body.getCollisions()) {
@@ -70,5 +71,12 @@ public class Exit extends Entity {
 		}
 
 		super.update(delta);
+	}
+	
+	@Override
+	public void draw() {
+		if (level.currentSheet != layer) return;
+		
+		super.draw();
 	}
 }

@@ -36,7 +36,7 @@ public class Playing implements GameState {
 	private Level level;
 	
 	//TODO: Change to dynamic choice
-	public String chapter = "test";
+	public String chapter = "1";
 	
 	private ArrayList<String> levels;
 	public int current;
@@ -56,6 +56,7 @@ public class Playing implements GameState {
 	}
 	
 	private void playLevel() {
+		current = 1;
 		String prefix = chapter + "/" + levels.get(current);
 		level = new Level(player1, player2, LevelLoader.load(prefix + "_0"),
 				LevelLoader.load(prefix + "_1"));
