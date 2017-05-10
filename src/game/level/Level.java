@@ -2,6 +2,8 @@ package game.level;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
 
 import game.TG;
@@ -133,8 +135,6 @@ public class Level extends Node {
 			spawnEntities(i);
 		}
 		
-		entities.add(new Key(this, 0, 0, 0));
-
 		terrain[1].setTag("ice");
 		
 		spawnPlayers();
@@ -164,9 +164,6 @@ public class Level extends Node {
 			player2.get(Transform.class).position.y = spawnPoints.get(r2).position.y;
 		}
 		
-		player1.get(Transform.class).position.x += .5f;
-		player2.get(Transform.class).position.x += .5f;
-		
 		currentSheet = spawnPoints.get(0).layer;
 	}
 
@@ -175,8 +172,10 @@ public class Level extends Node {
 		HashMap<Integer, Vector2f> doorPositions = new HashMap<Integer, Vector2f>();
 		HashMap<Integer, MoveableDoor> doors     = new HashMap<Integer, MoveableDoor>();
 		ArrayList<PressurePlate> plates          = new ArrayList<PressurePlate>();
+		ArrayList<Integer> 		plateConnections = new ArrayList<Integer>();
 	
 		for(EntityData ed : data[i].entities) {
+			ed.position.x += 0.5f;
 			switch(ed.id) {
 			// GENERAL //
 			case 0: // Spawn points
@@ -208,11 +207,13 @@ public class Level extends Node {
 			case 7: // Pressure Plate
 				PressurePlate plate = new PressurePlate(this, i, ed.position.x, ed.position.y);
 				plates.add(plate);
+				plateConnections.add(ed.value);
 				entities.add(plate);
 				break;
 			case 8: // Oneshot Pressure Plate
 				OneshotPressurePlate oplate = new OneshotPressurePlate(this, i, ed.position.x, ed.position.y);
 				plates.add(oplate);
+				plateConnections.add(ed.value);
 				entities.add(oplate);
 				break;
 			case 9: // Movable Door
@@ -230,11 +231,28 @@ public class Level extends Node {
 		}
 
 		// Linkup all the doors
-		//
-		// Pairup all doors and setTargetB to doorPosition.value
-		//
-		// Loopthrough and push the bits one bit to the right,
-		// when you find one that is 1, link it with the corresponding door.
+		// Find the positions
+		for (int key : doors.keySet()) {
+			((MoveableDoor) doors.get(key)).setB(doorPositions.get(key));
+		}
+
+		// Link the pressure plates
+		for (int j = 0; j < plates.size(); j++) {
+
+			int connections = plateConnections.get(j);
+
+			for (int n = 0; n < Integer.SIZE; n++) {
+				if (connections == 0) break;
+				if ((connections & 1) == 1) {
+					// We connect to this door
+					MoveableDoor door = doors.get(1 << n);
+					plates.get(j).connect(door.getConnectable());
+
+				}
+				// Try the next bit
+				connections = connections >> 1;
+			}
+		}
 	}
 	
 	private void createParallax() {
@@ -424,5 +442,9 @@ public class Level extends Node {
 			this.position = position;
 			this.layer = layer;
 		}
+	}
+
+	public void exit() {
+		System.out.println("Woo, you win!");
 	}
 }

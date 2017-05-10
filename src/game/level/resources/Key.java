@@ -3,6 +3,7 @@ package game.level.resources;
 import game.level.Chunk;
 import game.level.Level;
 import game.level.player.PlayerLogic;
+import sk.debug.Debug;
 import sk.entity.Component;
 import sk.entity.Entity;
 import sk.gfx.Mesh;
@@ -12,6 +13,7 @@ import sk.gfx.Transform;
 import sk.physics.Body;
 import sk.physics.Collision;
 import sk.physics.Shape;
+import sk.physics.TriggerBody;
 import sk.util.vector.Vector2f;
 
 public class Key extends Entity {
@@ -83,6 +85,7 @@ public class Key extends Entity {
 	Transform transform;
 	Renderer renderer;
 	Body body;
+	TriggerBody trigger;
 	Launchable launchable;
 
 	float size = 5;
@@ -105,7 +108,12 @@ public class Key extends Entity {
 		body.setLayer((short) (0b100));
 		body.setTag("key");
 		level.worlds[layer].addBody(body);
-
+		
+		trigger = new TriggerBody("key", Shape.GEN_QUAD(1f));
+		trigger.setDynamic(true);
+		trigger.setOnlyOverlap(true);
+		level.worlds[layer].addBody(trigger);
+		
 		launchable = new KeyLauncher();
 
 		renderer = new Renderer(Mesh.QUAD);
@@ -113,8 +121,13 @@ public class Key extends Entity {
 
 		add(transform);
 		add(body);
+		add(trigger);
 		add(launchable);
 		add(renderer);
+	}
+
+	public void useKey() {
+		used = true;
 	}
 
 	@Override

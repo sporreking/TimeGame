@@ -21,7 +21,8 @@ public class MoveableDoor extends Entity {
 	Level level;
 	int layer;
 	
-	float scale = 10;
+	float width = 10;
+	float height = 20;
 	
 	Connectable connectable = new PushDownConnectable();
 
@@ -35,7 +36,6 @@ public class MoveableDoor extends Entity {
 		@Override
 		public void released() {
 			getParent().get(Moveable.class).switchTarget();
-			
 		}
 	}
 
@@ -48,11 +48,12 @@ public class MoveableDoor extends Entity {
 		transform.position.y = y;
 
 		
-		transform.scale.x = scale * Chunk.PIXEL_SCALE;
-		transform.scale.y = scale * Chunk.PIXEL_SCALE;
+		transform.scale.x = width  * Chunk.PIXEL_SCALE;
+		transform.scale.y = height * Chunk.PIXEL_SCALE;
 		
 		movable = new Moveable(transform.position, transform.position, 0, 1);
 		movable.setTarget(0, transform.position.clone());
+		movable.setSpeed(0.2f);
 		
 		renderer = new Renderer(Mesh.QUAD);
 		renderer.setTexture(new Texture("res/texture/temp.png"));
