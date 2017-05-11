@@ -14,7 +14,7 @@ public class Main {
 		gp.width = 800;
 		gp.height = 600;
 		gp.startState = TG.GS_PLAYING;
-		gp.fullscreen = false;
+		gp.fullscreen = true;
 		gp.resizable = true;
 		gp.title = "Time Game";
 		gp.vSync = true;

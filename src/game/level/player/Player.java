@@ -1,5 +1,6 @@
 package game.level.player;
 
+import game.TG;
 import game.level.Chunk;
 import game.level.resources.Launchable;
 import sk.debug.Debug;
@@ -80,6 +81,8 @@ public class Player extends Entity {
 	public void kill() {
 		body.setTrigger(true);
 		alive = false;
+		
+		TG.GS_PLAYING.playLevel();
 	}
 	
 	public boolean isAlive() {
@@ -129,6 +132,12 @@ public class Player extends Entity {
 		if (alive && enabled) {
 			super.draw();
 		}
+	}
+	
+	public Player setAlive(boolean alive) {
+		this.alive = alive;
+		
+		return this;
 	}
 
 	public void switchTime() {

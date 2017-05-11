@@ -46,17 +46,22 @@ public class Playing implements GameState {
 		Camera.DEFAULT.scale.x = .75f;
 		Camera.DEFAULT.scale.y = .75f;
 		
-		player1 = new Player(true);
-		player2 = new Player(false);
-		
 		setupChapter();
 		
 		playLevel();
 		
 	}
 	
-	private void playLevel() {
-		current = 1;
+	public void playLevel() {
+		
+		if (player1 != null)
+			player1.destroy();
+		if(player2 != null)
+			player2.destroy();
+		
+		player1 = new Player(true);
+		player2 = new Player(false);
+		
 		String prefix = chapter + "/" + levels.get(current);
 		level = new Level(player1, player2, LevelLoader.load(prefix + "_0"),
 				LevelLoader.load(prefix + "_1"));
@@ -73,6 +78,7 @@ public class Playing implements GameState {
 			}
 		}
 		
+		
 		current = 0;
 	}
 	
@@ -86,7 +92,7 @@ public class Playing implements GameState {
 			Game.stop();
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_R)) {
-			GameStateManager.enterState(TG.GS_PLAYING);
+			playLevel();
 		}
 	}
 	
@@ -108,5 +114,19 @@ public class Playing implements GameState {
 	
 	public String id() {
 		return levels.get(current).substring(3).substring(0);
+	}
+	
+	public Level getCurrentLevel() {
+		return level;
+	}
+	
+	public void nextLevel() {
+		current++;
+		
+		if(current < levels.size()) {
+			playLevel();
+		} else {
+			
+		}
 	}
 }
