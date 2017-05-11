@@ -50,7 +50,8 @@ public class Player extends Entity {
 				new Vector2f(-0.5f,  0.5f),
 				new Vector2f( 0.5f,  0.5f),
 				new Vector2f( 0.5f, -0.35f),
-				new Vector2f( 0.0f, -0.5f),
+				new Vector2f( 0.2f, -0.5f),
+				new Vector2f(-0.2f, -0.5f),
 				new Vector2f(-0.5f, -0.35f)
 				})).setTag(isBoy ? "p1" : "p2");
 		
@@ -129,6 +130,10 @@ public class Player extends Entity {
 		if (alive && enabled) {
 			super.draw();
 		}
+		
+		Debug.setDebugMode(true);
+		body._draw();
+		Debug.draw();
 	}
 
 	public void switchTime() {
