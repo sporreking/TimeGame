@@ -17,7 +17,7 @@ public class Main {
 		gp.clearColor = new Vector4f();
 		gp.width = 800;
 		gp.height = 600;
-		gp.startState = TG.GS_PLAYING;
+		gp.startState = TG.GS_MAIN_MENU;
 		gp.resizable = false;
 		gp.title = "Time Game";
 		gp.vSync = true;
