@@ -2,8 +2,6 @@ package game.level;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Random;
 
 import game.TG;
@@ -187,7 +185,7 @@ public class Level extends Node {
 			// ENEMIES //
 			case 2: // Swallower
 				enemies.add(new Enemy(this, i, Enemy.Type.SWALLOWER,
-						ed.position.x + .5f, ed.position.y));
+						ed.position.x, ed.position.y));
 				break;
 			case 3: // UNKNOWN
 				enemies.add(new Enemy(this, i, Enemy.Type.SWALLOWER,

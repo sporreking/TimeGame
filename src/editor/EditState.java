@@ -140,14 +140,14 @@ public class EditState implements GameState {
 		//B1
 		GUIButton b_1 = new GUIButton(-1, 1, 25, -25, 50, 50);
 		b_1.setTexture(t_red);
-		b_1.setOnClick(() -> guiPress(0));
+		b_1.setOnClick((sst) -> guiPress(0));
 		b_1.setText(new GUIText("P", 50, 50, Font.getFont("Arial")));
 		gui.add(new Entity().add(b_1));
 		
 		//B2
 		GUIButton b_2 = new GUIButton(-1, 1, 75, -25, 50, 50);
 		b_2.setTexture(Texture.DEFAULT);
-		b_2.setOnClick(() -> guiPress(1));
+		b_2.setOnClick((sst) -> guiPress(1));
 		b_2.setText(new GUIText("E", 50, 50, Font.getFont("Arial")));
 		gui.add(new Entity().add(b_2));
 	}

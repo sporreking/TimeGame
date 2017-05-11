@@ -8,25 +8,12 @@ import org.lwjgl.glfw.GLFW;
 import game.TG;
 import game.level.Level;
 import game.level.LevelLoader;
-import game.level.player.PlayerLogic;
 import game.level.player.Player;
 import sk.audio.Audio;
-import sk.audio.AudioManager;
-import sk.entity.Entity;
-import sk.game.Game;
 import sk.gamestate.GameState;
 import sk.gamestate.GameStateManager;
 import sk.gfx.Camera;
-import sk.gfx.Mesh;
-import sk.gfx.Renderer;
-import sk.gfx.Texture;
-import sk.gfx.Transform;
-import sk.physics.Body;
-import sk.physics.Shape;
-import sk.physics.World;
 import sk.util.io.Keyboard;
-import sk.util.vector.Vector2f;
-import sk.util.vector.Vector3f;
 
 public class Playing implements GameState {
 	
@@ -50,10 +37,10 @@ public class Playing implements GameState {
 		
 		playLevel();
 		
+		System.out.println("hek");
 	}
 	
 	public void playLevel() {
-		
 		if (player1 != null)
 			player1.destroy();
 		if(player2 != null)
@@ -78,7 +65,6 @@ public class Playing implements GameState {
 			}
 		}
 		
-		
 		current = 0;
 	}
 	
@@ -89,7 +75,7 @@ public class Playing implements GameState {
 		level.update(delta);
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_ESCAPE))
-			Game.stop();
+			GameStateManager.enterState(TG.GS_MAIN_MENU);
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_R)) {
 			playLevel();
@@ -126,7 +112,7 @@ public class Playing implements GameState {
 		if(current < levels.size()) {
 			playLevel();
 		} else {
-			
+			GameStateManager.enterState(TG.GS_MAIN_MENU);
 		}
 	}
 }

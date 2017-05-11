@@ -100,4 +100,6 @@ public class Swallower extends Component {
 		swallowed.get(Transform.class).position.x = e.transform.position.x;
 		swallowed.get(Transform.class).position.y = e.transform.position.y;
 	}
+	
+	
 }

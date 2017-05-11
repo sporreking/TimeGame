@@ -1,7 +1,6 @@
 package game.level;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -10,9 +9,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
 import editor.EditObject;
-import editor.Polygon;
 import sk.gfx.SpriteSheet;
-import sk.gfx.Texture;
 import sk.util.vector.Vector2f;
 
 public class LevelLoader {

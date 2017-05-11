@@ -4,7 +4,7 @@ import sk.entity.Component;
 import sk.gfx.Animation;
 import sk.gfx.SpriteSheet;
 
-public class AnimationHandler extends Component {
+public class PlayerAnimation extends Component {
 	
 	private boolean running = false;
 	private int dir = -1;
@@ -14,7 +14,7 @@ public class AnimationHandler extends Component {
 	
 	private Player player;
 	
-	public AnimationHandler(Player player) {
+	public PlayerAnimation(Player player) {
 		this.player = player;
 	}
 	
