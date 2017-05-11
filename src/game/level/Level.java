@@ -1,6 +1,9 @@
 package game.level;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
 
 import game.TG;
@@ -9,7 +12,11 @@ import game.level.player.PlayerLogic;
 import game.level.player.Hud;
 import game.level.player.Player;
 import game.level.resources.Battery;
-import game.level.resources.PushDownDoor;
+import game.level.resources.Exit;
+import game.level.resources.Key;
+import game.level.resources.LockedDoor;
+import game.level.resources.MoveableDoor;
+import game.level.resources.OneshotPressurePlate;
 import game.level.resources.PressurePlate;
 import game.level.resources.Rock;
 import game.parallax.ParallaxRender;
@@ -114,7 +121,7 @@ public class Level extends Node {
 			
 			terrain[i] = new Body(false, 1, 100, 0, shapes);
 			terrain[i].decouple(t);
-			terrain[i].setLayer((short) (P2_LAYER | P1_LAYER));
+			terrain[i].setLayer((short) (0b100 | P2_LAYER | P1_LAYER));
 			
 			worlds[i].addBody(terrain[i]);
 
@@ -127,25 +134,7 @@ public class Level extends Node {
 			player2.get(Body.class).setLayer((short) P2_LAYER);
 			spawnEntities(i);
 		}
-		//Enemy e = new Enemy(this, 0, Enemy.Type.SWALLOWER, .1f, -.4f);
-		//enemies.add(e);
-		//worlds[0].addBody(e.get(Body.class));
-		entities.add(new Battery(this, 1, -0.1f, -0.4f));
-		entities.add(new Rock(this, 0, 0.1f, 0.0f));
 		
-		PushDownDoor temp = new PushDownDoor(this, 0, 0.2f, 0.2f);
-		temp.setA(new Vector2f(0,  0.5f));
-		temp.setB(new Vector2f(0, -0.4f));
-		temp.setSpeed(0.1f);
-		
-		PressurePlate plate = new PressurePlate(this, 0, -0.1f, -0.4f);
-		plate.connect(temp.getConnectable());
-
-		entities.add(plate);
-		entities.add(temp);
-		
-		System.out.println("TODO: REMOVE ENEMY\nADJUST BG LOADING");
-
 		terrain[1].setTag("ice");
 		
 		spawnPlayers();
@@ -175,24 +164,96 @@ public class Level extends Node {
 			player2.get(Transform.class).position.y = spawnPoints.get(r2).position.y;
 		}
 		
-		player1.get(Transform.class).position.x += .5f;
-		player2.get(Transform.class).position.x += .5f;
-		
 		currentSheet = spawnPoints.get(0).layer;
 	}
+
+	private void spawnEntities(int i) {		
+		// Holds the door positons temporarily
+		HashMap<Integer, Vector2f> doorPositions = new HashMap<Integer, Vector2f>();
+		HashMap<Integer, MoveableDoor> doors     = new HashMap<Integer, MoveableDoor>();
+		ArrayList<PressurePlate> plates          = new ArrayList<PressurePlate>();
+		ArrayList<Integer> 		plateConnections = new ArrayList<Integer>();
 	
-	private void spawnEntities(int i) {
-		
 		for(EntityData ed : data[i].entities) {
-			System.out.println(ed.value);
+			ed.position.x += 0.5f;
 			switch(ed.id) {
+			// GENERAL //
 			case 0: // Spawn points
 				spawnPoints.add(new SpawnPoint(ed.position, i));
 				break;
-			case 1: // Swallower
+			case 1: // Exit
+				entities.add(new Exit(this, i, ed.position.x, ed.position.y));
+				break;
+			// ENEMIES //
+			case 2: // Swallower
 				enemies.add(new Enemy(this, i, Enemy.Type.SWALLOWER,
 						ed.position.x + .5f, ed.position.y));
 				break;
+			case 3: // UNKNOWN
+				enemies.add(new Enemy(this, i, Enemy.Type.SWALLOWER,
+						ed.position.x + .5f, ed.position.y));
+				break;
+			// SPAWNABLE //
+			case 4: // Key
+				entities.add(new Key(this, i, ed.position.x, ed.position.y));
+				break;
+			case 5: // Locked door
+				entities.add(new LockedDoor(this, i, ed.position.x, ed.position.y));
+				break;
+			case 6: // Rock
+				entities.add(new Rock(this, i, ed.position.x, ed.position.y));
+				break;
+			// DOORS //
+			case 7: // Pressure Plate
+				PressurePlate plate = new PressurePlate(this, i, ed.position.x, ed.position.y);
+				plates.add(plate);
+				plateConnections.add(ed.value);
+				entities.add(plate);
+				break;
+			case 8: // Oneshot Pressure Plate
+				OneshotPressurePlate oplate = new OneshotPressurePlate(this, i, ed.position.x, ed.position.y);
+				plates.add(oplate);
+				plateConnections.add(ed.value);
+				entities.add(oplate);
+				break;
+			case 9: // Movable Door
+				MoveableDoor door = new MoveableDoor(this, i, ed.position.x, ed.position.y);
+				doors.put(ed.value, door);
+				entities.add(door);
+				break;
+			case 10: // Door Position
+				doorPositions.put(ed.value, ed.position);
+				break;
+			// FOREGOTTEN STUFF //
+			case 11:
+				entities.add(new Battery(this, i, ed.position.x, ed.position.y));
+			default:
+				System.out.println("Error in level file, unknown entity: " + ed.id);
+				break;
+		 	}	
+		}
+
+		// Linkup all the doors
+		// Find the positions
+		for (int key : doors.keySet()) {
+			((MoveableDoor) doors.get(key)).setB(doorPositions.get(key));
+		}
+
+		// Link the pressure plates
+		for (int j = 0; j < plates.size(); j++) {
+
+			int connections = plateConnections.get(j);
+
+			for (int n = 0; n < Integer.SIZE; n++) {
+				if (connections == 0) break;
+				if ((connections & 1) == 1) {
+					// We connect to this door
+					MoveableDoor door = doors.get(1 << n);
+					plates.get(j).connect(door.getConnectable());
+
+				}
+				// Try the next bit
+				connections = connections >> 1;
 			}
 		}
 	}
@@ -384,5 +445,9 @@ public class Level extends Node {
 			this.position = position;
 			this.layer = layer;
 		}
+	}
+
+	public void exit() {
+		System.out.println("Woo, you win!");
 	}
 }

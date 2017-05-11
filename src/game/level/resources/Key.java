@@ -3,6 +3,7 @@ package game.level.resources;
 import game.level.Chunk;
 import game.level.Level;
 import game.level.player.PlayerLogic;
+import sk.debug.Debug;
 import sk.entity.Component;
 import sk.entity.Entity;
 import sk.gfx.Mesh;
@@ -12,16 +13,14 @@ import sk.gfx.Transform;
 import sk.physics.Body;
 import sk.physics.Collision;
 import sk.physics.Shape;
+import sk.physics.TriggerBody;
 import sk.util.vector.Vector2f;
 
-public class Rock extends Entity {
-	
-	public class RockLauncher extends Launchable {
+public class Key extends Entity {
+
+	public class KeyLauncher extends Launchable {
 		Body body;
-		Short defaultLayer;
-		boolean pickedUpThisFrame = false;
-		int sinceThrown = Integer.MAX_VALUE;
-		int safeDistance = 3;
+		boolean pickedupThisFrame = false;
 		
 		public void init() {
 			body = getParent().get(Body.class);
@@ -42,9 +41,10 @@ public class Rock extends Entity {
 			if (c != null)
 				c.drop();
 
-			get(Transform.class).position = holder.get(Transform.class).position.clone().add(relativePosition);
+			get(Transform.class).position = holder.get(Transform.class).
+				position.clone().add(relativePosition);
 			body.setVelocity(direction);
-			sinceThrown = 0;
+
 			holder = null;
 			held = false;
 			return true;
@@ -57,83 +57,93 @@ public class Rock extends Entity {
 			this.relativePosition = relativePosition;
 			this.holder = holder;
 			held = true;
-			
-			defaultLayer = body.getLayer();
-			body.setLayer((short) ((~this.holder.get(Body.class).getLayer()) & defaultLayer));
-			body.setOnlyOverlap(true);
-			body.setOneWayLeniency(0.3f);
+			pickedupThisFrame = true;
 
-			pickedUpThisFrame = true;
 			return true;
 		}
 		
 		@Override
 		public void update(double delta) {
 			if (held) {
-				if (pickedUpThisFrame) {
-					pickedUpThisFrame = false;
-					return;
-				}
+				get(Transform.class).position = holder.get(Transform.class).
+						position.clone().add(relativePosition);
+				// If we picked up the rock this frame, skip it
+				if (pickedupThisFrame) return;
 				for (Collision c : body.getCollisions()) {
 					if (!c.other.isTrigger() && c.other.getParent() != holder) {
 						launch(c.normal.clone().scale(0.25f));
 						return;
 					}
 				}
-				get(Transform.class).position = holder.get(Transform.class).position.clone().add(relativePosition);
-			} else if (sinceThrown < safeDistance){
-				sinceThrown++;
-				if (sinceThrown == safeDistance) {
-					body.setLayer(defaultLayer);
-					body.setOnlyOverlap(false);
-					body.setOneWayLeniency(-1);
-				}
 			}
 		}
 	}
 
-	Transform transform;
-	Body body;
-	Renderer renderer;
-	RockLauncher ra;
-	
 	Level level;
-	int layer = 0;
-	
+	int layer;
+
+	Transform transform;
+	Renderer renderer;
+	Body body;
+	TriggerBody trigger;
+	Launchable launchable;
+
 	float size = 5;
 	
-	public Rock(Level level, int layer, float x, float y) {
-		this.level = level;
+	boolean used = false;
+
+
+	public Key(Level level, int layer, float x, float y) {
 		this.layer = layer;
-		
+		this.level = level;
+
 		transform = new Transform();
 		transform.position.x = x;
 		transform.position.y = y;
 		transform.scale.x = size * Chunk.PIXEL_SCALE;
 		transform.scale.y = size * Chunk.PIXEL_SCALE;
-		
-		body = new Body(5, 7, 0, Shape.QUAD);
-		body.setOneWayDirection(new Vector2f(0, 1));
-		body.setTag("rock");
+
+		body = new Body(5, 6, 0, Shape.QUAD);
+		// Layer so it doesn't collide with the players
+		body.setLayer((short) (0b100));
+		body.setTag("key");
 		level.worlds[layer].addBody(body);
 		
+		trigger = new TriggerBody("key", Shape.GEN_QUAD(1f));
+		trigger.setDynamic(true);
+		trigger.setOnlyOverlap(true);
+		level.worlds[layer].addBody(trigger);
+		
+		launchable = new KeyLauncher();
+
 		renderer = new Renderer(Mesh.QUAD);
 		renderer.setTexture(new Texture("res/texture/temp.png"));
-		
-		ra = new RockLauncher();
-		
+
 		add(transform);
 		add(body);
-		add(ra);
+		add(trigger);
+		add(launchable);
 		add(renderer);
 	}
-	
+
+	public void useKey() {
+		used = true;
+	}
+
+	@Override
+	public void update(double delta) {
+		// If we have used the key, don't render anything.
+		if (used) return;
+		if (level.currentSheet != layer) return;
+
+		super.update(delta);
+	}
+
 	@Override
 	public void draw() {
-		if (layer != level.currentSheet) {
-			return;
-		}
-		
+		if (used) return;
+		if (level.currentSheet != layer) return;
+
 		super.draw();
 	}
 }

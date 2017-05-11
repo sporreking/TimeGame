@@ -135,4 +135,8 @@ public class Player extends Entity {
 		if (!playerLogic.launchableIsPlayer())
 			playerLogic.tryThrow();
 	}
+
+	public boolean isGrounded() {
+		return grounded;
+	}
 }
