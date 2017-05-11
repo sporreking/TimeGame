@@ -45,6 +45,7 @@ public class Level extends Node {
 	public int currentSheet = 0;
 	
 	public Chunk[][][] chunks;
+	public Chunk borderChunk;
 	public World[] worlds;
 	public Body[] terrain;
 	
@@ -65,6 +66,7 @@ public class Level extends Node {
 	private ParallaxRender[] pr_1;
 	private ParallaxRender[] pr_2;
 	
+	private boolean promptRestart = false;
 	private ArrayList<SpawnPoint> spawnPoints;
 	
 	public Level(Player player1, Player player2, LevelData... levelData) {
@@ -78,11 +80,10 @@ public class Level extends Node {
 		player1.get(PlayerLogic.class).setLevel(this);
 		player2.get(PlayerLogic.class).setLevel(this);
 		
-		hud = new Hud();
+		hud = new Hud(this);
 		
 		worlds = new World[levelData.length];
 		terrain = new Body[levelData.length];
-		//r_bg = new Renderer[levelData.length];
 		
 		createParallax();
 		
@@ -138,6 +139,19 @@ public class Level extends Node {
 		terrain[1].setTag("ice");
 		
 		spawnPlayers();
+		
+		// Place the camera in the right place
+		Transform t1 = player1.get(Transform.class);
+		Transform t2 = player1.get(Transform.class);
+		
+		float scale = Math.max(.4f, Math.max(Math.abs(t1.position.x - t1.position.x) * 1.1f + 0.5f,
+				Math.abs((t1.position.y - t2.position.y) * Window.getAspectRatio())) / 2);
+		
+		Vector2f position = t1.position.clone().add(t2.position).scale(0.5f);
+		
+		Camera.DEFAULT.scale.x = scale;
+		Camera.DEFAULT.scale.y = scale;
+		Camera.DEFAULT.position = position;
 	}
 	
 	private void spawnPlayers() {
@@ -306,7 +320,6 @@ public class Level extends Node {
 	}
 	
 	private void checkBounds() {
-		
 		Transform t;
 		Player p;
 		for (int i = 0; i < 2; i++) {
@@ -341,9 +354,11 @@ public class Level extends Node {
 		Transform t2 = player2.get(Transform.class);
 		
 		if (!player1.isAlive()) {
+			promptRestart = true;
 			t1 = t2;
 		}
 		if (!player2.isAlive()) {
+			promptRestart = true;
 			t2 = t1;
 		}
 		
@@ -410,6 +425,13 @@ public class Level extends Node {
 	public void draw() {
 		pr_2[currentSheet].draw();
 		pr_1[currentSheet].draw();
+
+		// background chunks
+		for(int i = 0; i < data[0].chunksY; i++) {
+			for(int j = 0; j < data[0].chunksX; j++) {
+				chunks[currentSheet][i][j].drawBG();
+			}
+		}
 		
 		if (player2.playerLogic.isHeld()) {
 			player2.draw();			
@@ -419,14 +441,16 @@ public class Level extends Node {
 			player2.draw();			
 		}
 
+		enemies.draw();
+		entities.draw();
+
+		// foreground chunks
 		for(int i = 0; i < data[0].chunksY; i++) {
 			for(int j = 0; j < data[0].chunksX; j++) {
 				chunks[currentSheet][i][j].draw();
 			}
 		}
 		
-		enemies.draw();
-		entities.draw();
 		
 		hud.draw();
 	}
@@ -449,5 +473,9 @@ public class Level extends Node {
 
 	public void exit() {
 		System.out.println("Woo, you win!");
+	}
+
+	public boolean isPromptingRestart() {
+		return promptRestart;
 	}
 }
