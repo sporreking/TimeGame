@@ -44,8 +44,7 @@ public class Level extends Node {
 	public int currentSheet = 0;
 	
 	public Chunk[][][] chunks;
-	public Chunk background = new Chunk(0, 0, Texture.DEFAULT, Texture.DEFAULT);
-	public Chunk borderChunk;
+	public Chunk background;
 	public World[] worlds;
 	public Body[] terrain;
 	
@@ -79,6 +78,14 @@ public class Level extends Node {
 		
 		player1.get(PlayerLogic.class).setLevel(this);
 		player2.get(PlayerLogic.class).setLevel(this);
+		
+		Texture forestBorder = new Texture();
+		forestBorder = forestBorder.generate(1, 1, new int[] {0xff00ffff});
+
+		Texture iceBorder = new Texture();
+		iceBorder = iceBorder.generate(1, 1, new int[] {0xffff00ff});
+		
+		background = new Chunk(0, 0, forestBorder, iceBorder);
 		
 		hud = new Hud(this);
 		
@@ -443,7 +450,11 @@ public class Level extends Node {
 		for (int i = 0; i < data[0].chunksX; i++) {
 			for (int j = -1; j < data[0].chunksY + 2; j += data[0].chunksY + 1) {
 				transform.position.set(i * Chunk.SCALE, j * Chunk.SCALE);
-				background.draw();
+				if (currentSheet == 0) {
+					background.draw();
+				} else {
+					background.drawBG();
+				}
 			}
 		}
 		
@@ -451,7 +462,11 @@ public class Level extends Node {
 		for (int i = -1; i < data[0].chunksX + 2; i += data[0].chunksY + 2) {
 			for (int j = -1; j < data[0].chunksY + 1; j++) {
 				transform.position.set(i * Chunk.SCALE, j * Chunk.SCALE);
-				background.draw();
+				if (currentSheet == 0) {
+					background.draw();
+				} else {
+					background.drawBG();
+				}
 			}
 		}
 		
