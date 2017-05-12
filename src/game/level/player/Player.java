@@ -1,5 +1,6 @@
 package game.level.player;
 
+import game.TG;
 import game.level.Chunk;
 import game.level.resources.Launchable;
 import sk.debug.Debug;
@@ -32,7 +33,7 @@ public class Player extends Entity {
 	public TriggerBody pickupTrigger;
 	public PlayerLogic playerLogic;
 	public Renderer renderer;
-	public AnimationHandler ah;
+	public PlayerAnimation ah;
 	
 	protected boolean running = false;
 	protected boolean grounded = false;
@@ -68,7 +69,7 @@ public class Player extends Entity {
 				new Vertex2D(-1f, -.2f / .4f, 0, 1)
 		}, 0, 1, 3, 3, 1, 2));
 		
-		ah = new AnimationHandler(this);
+		ah = new PlayerAnimation(this);
 		
 		add(transform);
 		add(body);
@@ -81,6 +82,8 @@ public class Player extends Entity {
 	public void kill() {
 		body.setTrigger(true);
 		alive = false;
+		
+		TG.GS_PLAYING.playLevel();
 	}
 	
 	public boolean isAlive() {
@@ -134,6 +137,12 @@ public class Player extends Entity {
 		Debug.setDebugMode(true);
 		body._draw();
 		Debug.draw();
+	}
+	
+	public Player setAlive(boolean alive) {
+		this.alive = alive;
+		
+		return this;
 	}
 
 	public void switchTime() {

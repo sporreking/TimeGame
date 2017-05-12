@@ -3,7 +3,6 @@ package game.level.resources;
 import game.level.Chunk;
 import game.level.Level;
 import game.level.player.PlayerLogic;
-import sk.debug.Debug;
 import sk.entity.Component;
 import sk.entity.Entity;
 import sk.gfx.Mesh;

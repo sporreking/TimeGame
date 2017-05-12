@@ -8,25 +8,12 @@ import org.lwjgl.glfw.GLFW;
 import game.TG;
 import game.level.Level;
 import game.level.LevelLoader;
-import game.level.player.PlayerLogic;
 import game.level.player.Player;
 import sk.audio.Audio;
-import sk.audio.AudioManager;
-import sk.entity.Entity;
-import sk.game.Game;
 import sk.gamestate.GameState;
 import sk.gamestate.GameStateManager;
 import sk.gfx.Camera;
-import sk.gfx.Mesh;
-import sk.gfx.Renderer;
-import sk.gfx.Texture;
-import sk.gfx.Transform;
-import sk.physics.Body;
-import sk.physics.Shape;
-import sk.physics.World;
 import sk.util.io.Keyboard;
-import sk.util.vector.Vector2f;
-import sk.util.vector.Vector3f;
 
 public class Playing implements GameState {
 	
@@ -46,17 +33,22 @@ public class Playing implements GameState {
 		Camera.DEFAULT.scale.x = .75f;
 		Camera.DEFAULT.scale.y = .75f;
 		
-		player1 = new Player(true);
-		player2 = new Player(false);
-		
 		setupChapter();
 		
 		playLevel();
 		
+		System.out.println("hek");
 	}
 	
-	private void playLevel() {
-		current = 1;
+	public void playLevel() {
+		if (player1 != null)
+			player1.destroy();
+		if(player2 != null)
+			player2.destroy();
+		
+		player1 = new Player(true);
+		player2 = new Player(false);
+		
 		String prefix = chapter + "/" + levels.get(current);
 		level = new Level(player1, player2, LevelLoader.load(prefix + "_0"),
 				LevelLoader.load(prefix + "_1"));
@@ -83,10 +75,10 @@ public class Playing implements GameState {
 		level.update(delta);
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_ESCAPE))
-			Game.stop();
+			GameStateManager.enterState(TG.GS_MAIN_MENU);
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_R)) {
-			GameStateManager.enterState(TG.GS_PLAYING);
+			playLevel();
 		}
 	}
 	
@@ -108,5 +100,19 @@ public class Playing implements GameState {
 	
 	public String id() {
 		return levels.get(current).substring(3).substring(0);
+	}
+	
+	public Level getCurrentLevel() {
+		return level;
+	}
+	
+	public void nextLevel() {
+		current++;
+		
+		if(current < levels.size()) {
+			playLevel();
+		} else {
+			GameStateManager.enterState(TG.GS_MAIN_MENU);
+		}
 	}
 }

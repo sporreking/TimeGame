@@ -13,8 +13,8 @@ public class Main {
 		gp.clearColor = new Vector4f();
 		gp.width = 800;
 		gp.height = 600;
-		gp.startState = TG.GS_PLAYING;
-		gp.fullscreen = false;
+		gp.startState = TG.GS_MAIN_MENU;
+		gp.fullscreen = true;
 		gp.resizable = true;
 		gp.title = "Time Game";
 		gp.vSync = true;

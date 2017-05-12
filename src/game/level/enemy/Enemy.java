@@ -39,6 +39,12 @@ public class Enemy extends Entity {
 		}
 	}
 	
+	@Override
+	public void draw() {
+		if(l.currentSheet == w)
+			super.draw();
+	}
+	
 	public enum Type {
 		SWALLOWER
 	}

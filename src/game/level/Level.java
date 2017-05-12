@@ -2,8 +2,6 @@ package game.level;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Random;
 
 import game.TG;
@@ -94,7 +92,7 @@ public class Level extends Node {
 		}
 		
 		chunks = new Chunk[2][data[0].chunksY][data[0].chunksX];
-		System.out.println(TG.GS_PLAYING.getPath() + "bg" + 1 + "_0");
+		
 		SpriteSheet ss0 = new SpriteSheet(TG.GS_PLAYING.getPath() + "bg" + 1 + "_0.png",
 				data[0].chunksX, data[0].chunksY);
 		SpriteSheet ss1 = new SpriteSheet(TG.GS_PLAYING.getPath() + "bg" + 1 + "_1.png",
@@ -201,7 +199,7 @@ public class Level extends Node {
 			// ENEMIES //
 			case 2: // Swallower
 				enemies.add(new Enemy(this, i, Enemy.Type.SWALLOWER,
-						ed.position.x + .5f, ed.position.y));
+						ed.position.x, ed.position.y));
 				break;
 			case 3: // UNKNOWN
 				enemies.add(new Enemy(this, i, Enemy.Type.SWALLOWER,
@@ -241,6 +239,7 @@ public class Level extends Node {
 			// FOREGOTTEN STUFF //
 			case 11:
 				entities.add(new Battery(this, i, ed.position.x, ed.position.y));
+				break;
 			default:
 				System.out.println("Error in level file, unknown entity: " + ed.id);
 				break;
@@ -330,8 +329,12 @@ public class Level extends Node {
 			default:
 				p = player2;
 			}
-				
+			
 			t = p.get(Transform.class);
+			
+			if(t == null)
+				return;
+			
 			// No use running a check on someone who is dead
 			if (!p.isAlive())
 				continue;
@@ -392,6 +395,8 @@ public class Level extends Node {
 		
 		worlds[currentSheet].update(delta);
 		
+		adjustCamera();
+		
 		checkBounds();
 		
 		player1.update(delta);
@@ -403,8 +408,6 @@ public class Level extends Node {
 		hud.update(delta);
 		
 		checkDeaths();
-		
-		adjustCamera();
 	}
 	
 	private void checkDeaths() {
@@ -472,7 +475,7 @@ public class Level extends Node {
 	}
 
 	public void exit() {
-		System.out.println("Woo, you win!");
+		TG.GS_PLAYING.nextLevel();
 	}
 
 	public boolean isPromptingRestart() {

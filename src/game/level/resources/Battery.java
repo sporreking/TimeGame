@@ -8,7 +8,6 @@ import sk.gfx.Renderer;
 import sk.gfx.Texture;
 import sk.gfx.Transform;
 import sk.physics.Body;
-import sk.physics.Collision;
 import sk.physics.Shape;
 
 public class Battery extends Entity {
