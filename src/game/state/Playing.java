@@ -48,6 +48,8 @@ public class Playing implements GameState {
 		player1 = new Player(true);
 		player2 = new Player(false);
 		
+		setupChapter();
+		
 		String prefix = chapter + "/" + levels.get(current);
 		level = new Level(player1, player2, LevelLoader.load(prefix + "_0"),
 				LevelLoader.load(prefix + "_1"));
@@ -73,10 +75,11 @@ public class Playing implements GameState {
 	public void update(double delta) {
 		level.update(delta);
 		
+		/*
 		if (Keyboard.pressed(GLFW.GLFW_KEY_ESCAPE))
 			Game.stop();
 			//GameStateManager.enterState(TG.GS_MAIN_MENU);
-		
+		*/
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_R)) {
 			playLevel();

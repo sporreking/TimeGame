@@ -25,7 +25,7 @@ public class Hud extends Entity {
 	private static int score;
 	private static float energy;
 	
-	private static float energyDecreaseRate = 0.05f;
+	private static float energyDecreaseRate = 0.01f;
 
 	private float restartTextAlphaTarget = 0;
 	private Vector4f restartTextColor = new Vector4f(1, 1, 1, 0);

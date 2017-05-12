@@ -45,7 +45,7 @@ public class PlayerLogic extends Launchable {
 
 	private float switchCooldown = 0.2f;
 	private float switchTimer = 0.0f;
-	private float switchCost = 0.2f;
+	private float switchCost = 0.1f;
 	private static boolean switchTurn = false;
 	
 	private float groundFriction = 0.4f;

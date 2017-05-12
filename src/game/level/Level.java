@@ -237,19 +237,27 @@ public class Level extends Node {
 				plateConnections.add(ed.value);
 				entities.add(oplate);
 				break;
-			case 9: // Movable Door
+			case 9: { // Movable Door
 				MoveableDoor door = new MoveableDoor(this, i, ed.position.x, ed.position.y);
 				doors.put(ed.value, door);
 				entities.add(door);
 				break;
+			}
 			case 10: // Door Position
 				doorPositions.put(ed.value, ed.position);
 				break;
 			// FOREGOTTEN STUFF //
-			case 11:
+			case 11: // Battery
 				entities.add(new Battery(this, i, ed.position.x, ed.position.y));
 				break;
-			default:
+			case 12: {
+				MoveableDoor door = new MoveableDoor(this, i, ed.position.x, ed.position.y);
+				door.get(Transform.class).rotation = (float) (Math.PI * 0.5f);
+				doors.put(ed.value, door);
+				entities.add(door);
+				break;
+			}
+			default: // Rotated door
 				System.out.println("Error in level file, unknown entity: " + ed.id);
 				break;
 		 	}	
@@ -271,7 +279,8 @@ public class Level extends Node {
 				if ((connections & 1) == 1) {
 					// We connect to this door
 					MoveableDoor door = doors.get(1 << n);
-					plates.get(j).connect(door.getConnectable());
+					if (door != null)
+						plates.get(j).connect(door.getConnectable());
 
 				}
 				// Try the next bit
@@ -435,6 +444,7 @@ public class Level extends Node {
 	
 	@Override
 	public void draw() {
+		// Paralax
 		pr_2[currentSheet].draw();
 		pr_1[currentSheet].draw();
 
@@ -470,6 +480,11 @@ public class Level extends Node {
 			}
 		}
 		
+		// Draw entities and such
+		enemies.draw();
+		entities.draw();
+
+		// Ze players
 		if (player2.playerLogic.isHeld()) {
 			player2.draw();			
 			player1.draw();
@@ -478,8 +493,6 @@ public class Level extends Node {
 			player2.draw();			
 		}
 
-		enemies.draw();
-		entities.draw();
 
 		// foreground chunks
 		for(int i = 0; i < data[0].chunksY; i++) {
