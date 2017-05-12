@@ -26,6 +26,7 @@ import sk.game.Time;
 import sk.game.Window;
 import sk.gfx.Camera;
 import sk.gfx.Mesh;
+import sk.gfx.Renderer;
 import sk.gfx.SpriteSheet;
 import sk.gfx.Texture;
 import sk.gfx.Transform;
@@ -43,6 +44,7 @@ public class Level extends Node {
 	public int currentSheet = 0;
 	
 	public Chunk[][][] chunks;
+	public Chunk background = new Chunk(0, 0, Texture.DEFAULT, Texture.DEFAULT);
 	public Chunk borderChunk;
 	public World[] worlds;
 	public Body[] terrain;
@@ -433,6 +435,23 @@ public class Level extends Node {
 		for(int i = 0; i < data[0].chunksY; i++) {
 			for(int j = 0; j < data[0].chunksX; j++) {
 				chunks[currentSheet][i][j].drawBG();
+			}
+		}
+
+		// The top and bottom
+		Transform transform = background.get(Transform.class);
+		for (int i = 0; i < data[0].chunksX; i++) {
+			for (int j = -1; j < data[0].chunksY + 2; j += data[0].chunksY + 1) {
+				transform.position.set(i * Chunk.SCALE, j * Chunk.SCALE);
+				background.draw();
+			}
+		}
+		
+		// Left and right wall
+		for (int i = -1; i < data[0].chunksX + 2; i += data[0].chunksY + 2) {
+			for (int j = -1; j < data[0].chunksY + 1; j++) {
+				transform.position.set(i * Chunk.SCALE, j * Chunk.SCALE);
+				background.draw();
 			}
 		}
 		

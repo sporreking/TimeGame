@@ -10,6 +10,7 @@ import game.level.Level;
 import game.level.LevelLoader;
 import game.level.player.Player;
 import sk.audio.Audio;
+import sk.game.Game;
 import sk.gamestate.GameState;
 import sk.gamestate.GameStateManager;
 import sk.gfx.Camera;
@@ -36,8 +37,6 @@ public class Playing implements GameState {
 		setupChapter();
 		
 		playLevel();
-		
-		System.out.println("hek");
 	}
 	
 	public void playLevel() {
@@ -75,7 +74,9 @@ public class Playing implements GameState {
 		level.update(delta);
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_ESCAPE))
-			GameStateManager.enterState(TG.GS_MAIN_MENU);
+			Game.stop();
+			//GameStateManager.enterState(TG.GS_MAIN_MENU);
+		
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_R)) {
 			playLevel();
@@ -112,7 +113,7 @@ public class Playing implements GameState {
 		if(current < levels.size()) {
 			playLevel();
 		} else {
-			GameStateManager.enterState(TG.GS_MAIN_MENU);
+			//GameStateManager.enterState(TG.GS_MAIN_MENU);
 		}
 	}
 }

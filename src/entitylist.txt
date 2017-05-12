@@ -20,7 +20,7 @@ A list of all the entities with ID and some extra information.
 10: Door pos - int (only power of 2 must be unique)
 
 // EXTRA //
-
+11: Batteri
 
 
 // TODO: Key, Exit, LockedDoor, PlayerState

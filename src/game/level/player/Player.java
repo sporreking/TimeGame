@@ -82,8 +82,6 @@ public class Player extends Entity {
 	public void kill() {
 		body.setTrigger(true);
 		alive = false;
-		
-		TG.GS_PLAYING.playLevel();
 	}
 	
 	public boolean isAlive() {
@@ -134,8 +132,6 @@ public class Player extends Entity {
 			super.draw();
 		}
 		
-		Debug.setDebugMode(true);
-		body._draw();
 		Debug.draw();
 	}
 	

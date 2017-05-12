@@ -138,6 +138,7 @@ public class EditState implements GameState {
 		gui = new Container();
 		
 		//B1
+		/*
 		GUIButton b_1 = new GUIButton(-1, 1, 25, -25, 50, 50);
 		b_1.setTexture(t_red);
 		b_1.setOnClick((sst) -> guiPress(0));
@@ -150,6 +151,7 @@ public class EditState implements GameState {
 		b_2.setOnClick((sst) -> guiPress(1));
 		b_2.setText(new GUIText("E", 50, 50, Font.getFont("Arial")));
 		gui.add(new Entity().add(b_2));
+		*/
 	}
 	
 	private void guiPress(int i) {
