@@ -149,4 +149,8 @@ public class Player extends Entity {
 	public boolean isGrounded() {
 		return grounded;
 	}
+	
+	public int getDir() {
+		return dir;
+	}
 }

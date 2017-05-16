@@ -2,6 +2,7 @@ package game.level.enemy;
 
 import game.level.Level;
 import sk.entity.Entity;
+import sk.gfx.Animation;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
 import sk.gfx.Transform;
@@ -20,6 +21,8 @@ public class Enemy extends Entity {
 	
 	public boolean dead = false;
 	
+	protected Animation animationToAdd = null;
+	
 	public Enemy(Level l, int world, Type type, float x, float y) {
 		this.TYPE = type;
 		this.l = l;
@@ -37,6 +40,15 @@ public class Enemy extends Entity {
 			add(new Swallower());
 			break;
 		}
+	}
+	
+	@Override
+	public void update(double delta) {
+		if(animationToAdd != null) {
+			add(animationToAdd);
+			animationToAdd = null;
+		}
+		super.update(delta);
 	}
 	
 	@Override

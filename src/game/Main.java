@@ -13,13 +13,11 @@ public class Main {
 		gp.clearColor = new Vector4f();
 		gp.width = 800;
 		gp.height = 600;
-		gp.startState = TG.GS_PLAYING;
+		gp.startState = TG.GS_MAIN_MENU;
 		gp.fullscreen = false;
 		gp.resizable = true;
 		gp.title = "Time Game";
 		gp.vSync = true;
-		
-		//Body b = new Body(new Shape(Vector2f(0.0f, 0.0f), Vector2f(0.0f, 0.0f)));
 		
 		System.out.println("Starting game...");
 		
