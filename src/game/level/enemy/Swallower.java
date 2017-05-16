@@ -136,11 +136,11 @@ public class Swallower extends Component {
 	}
 	
 	private void devour() {
-		e.transform.scale.x = SIZE;
-		e.transform.scale.y = SIZE;
-		swallowed.kill();
+		swallowed.alive = false;
 		swallowed = null;
 		timer = TIMER_START;
+		
+		animate(a_idle);
 	}
 	
 	private void pop() {

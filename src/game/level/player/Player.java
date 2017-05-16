@@ -5,6 +5,7 @@ import game.level.Chunk;
 import game.level.resources.Launchable;
 import sk.debug.Debug;
 import sk.entity.Entity;
+import sk.gfx.Animation;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
 import sk.gfx.Transform;
@@ -26,7 +27,8 @@ public class Player extends Entity {
 	final float SCALE = 1f / Chunk.SIZE;
 
 	boolean isBoy;
-	boolean alive = true;
+	public boolean alive = true;
+	public boolean shouldDie = false;
 	
 	public Transform transform;
 	public Body body;
@@ -80,8 +82,15 @@ public class Player extends Entity {
 	}
 	
 	public void kill() {
+		if(body.isTrigger())
+			return;
+		
 		body.setTrigger(true);
-		alive = false;
+		
+		body.setVelocity(new Vector2f());
+		
+		remove(Animation.class);
+		ah.animationToAdd = isBoy ? PlayerAnimation.dude1_death : PlayerAnimation.dude2_death;
 	}
 	
 	public boolean isAlive() {
@@ -96,6 +105,14 @@ public class Player extends Entity {
 
 		if (!alive) {
 			return;
+		}
+		
+		if(shouldDie) {
+			
+			if((isBoy ? PlayerAnimation.dude1_death :
+				PlayerAnimation.dude2_death).getCurrentFrame() == 4) {
+				alive = false;
+			}
 		}
 
 		if (!playerLogic.isHeld() && !body.isTrigger()) {
@@ -119,9 +136,15 @@ public class Player extends Entity {
 			super.update(TIME_STEP);
 		}
 		
+		checkAnimation();
+	}
+	
+	private void checkAnimation() {
 		if (ah.animationToAdd != null) {
 			add(ah.animationToAdd);
 			ah.animationToAdd.setOffset(0);
+			shouldDie = ah.animationToAdd == PlayerAnimation.dude1_death ||
+					ah.animationToAdd == PlayerAnimation.dude2_death;
 			ah.animationToAdd = null;
 		}
 	}

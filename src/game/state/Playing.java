@@ -64,8 +64,7 @@ public class Playing implements GameState {
 		
 		for(String s : base.list()) {
 			if(s.matches("^lvl[0-9]+_0\\.png")) {
-				// Doesn't handle multi-digit files, might need to be fixed, if it is needed @Ed
-				levels.add(s.substring(0, 4));
+				levels.add(s.substring(0, s.length() - 6));
 			}
 		}
 		
@@ -80,9 +79,8 @@ public class Playing implements GameState {
 		level.update(delta);
 		
 		
-		/*if (Keyboard.pressed(GLFW.GLFW_KEY_ESCAPE))
+		if (Keyboard.pressed(GLFW.GLFW_KEY_ESCAPE))
 			GameStateManager.enterState(TG.GS_MAIN_MENU);
-		*/
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_R)) {
 			playLevel();
@@ -106,7 +104,7 @@ public class Playing implements GameState {
 	}
 	
 	public String id() {
-		return levels.get(current).substring(3).substring(0);
+		return levels.get(current).substring(3, levels.get(current).length() - 2);
 	}
 	
 	public Level getCurrentLevel() {
@@ -119,7 +117,7 @@ public class Playing implements GameState {
 		if(current < levels.size()) {
 			playLevel();
 		} else {
-			//GameStateManager.enterState(TG.GS_MAIN_MENU);
+			GameStateManager.enterState(TG.GS_MAIN_MENU);
 		}
 	}
 }

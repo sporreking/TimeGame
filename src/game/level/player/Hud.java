@@ -21,6 +21,7 @@ public class Hud extends Entity {
 	public static final float GUI_SCALE = 1.0f;
 	public static final float RESTART_TEXT_ALPHA = 0.5f;
 	public static final float RESTART_TEXT_ALPHA_RANGE = 0.3f;
+	public static final float BAR_SCALE = 6.0f;
 	
 	private static int score;
 	private static float energy;
@@ -57,10 +58,10 @@ public class Hud extends Entity {
 		energyBar = new Entity();
 		energyBar.add(new Transform());
 		energyBar.add(
-				new GUIFader(1, 1, (int) ((-60 - 100) * GUI_SCALE), (int) (-15 * GUI_SCALE), (int) (100 * GUI_SCALE), (int) (30 * GUI_SCALE), 
-						new Texture("res/texture/mask.png"), 
-						new Texture("res/texture/on.png"), 
-						new Texture("res/texture/off.png")));
+				new GUIFader(1, 1, (int) ((- 24) * GUI_SCALE * BAR_SCALE), (int) (-6 * GUI_SCALE * BAR_SCALE), (int) (48 * GUI_SCALE * BAR_SCALE), (int) (6 * GUI_SCALE * BAR_SCALE), 
+						T_MASK, 
+						T_EMPTY, 
+						T_FULL));
 	
 		restartLabel = new Entity();
 		element = new GUIElement(0, 1, 0, -100, (int) (400 * GUI_SCALE), (int) (40 * GUI_SCALE));
@@ -119,11 +120,15 @@ public class Hud extends Entity {
 	
 	@Override
 	public void draw() {
-		scoreLabel.draw();
+//		scoreLabel.draw();
 		if (restartText.getColor().w != 0) {
 			restartLabel.draw();
 		}
 		energyBar.draw();
 	}
-
+	
+	public static final Texture T_MASK = new Texture("res/texture/hud/bar_mask.png");
+	public static final Texture T_FULL = new Texture("res/texture/hud/bar_full.png");
+	public static final Texture T_EMPTY = new Texture("res/texture/hud/bar_empty.png");
+	
 }

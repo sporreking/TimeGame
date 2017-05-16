@@ -4,8 +4,10 @@ import game.level.Chunk;
 import game.level.Level;
 import game.level.player.Player;
 import sk.entity.Entity;
+import sk.gfx.Animation;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
+import sk.gfx.SpriteSheet;
 import sk.gfx.Texture;
 import sk.gfx.Transform;
 import sk.physics.Body;
@@ -41,11 +43,11 @@ public class Exit extends Entity {
 		level.worlds[layer].addBody(body);
 		
 		renderer = new Renderer(Mesh.QUAD);
-		renderer.setTexture(new Texture("res/texture/temp.png"));
-
+		
 		add(transform);
 		add(body);
 		add(renderer);
+		add(new Animation(SS_TELEPORTER, 8, 0, 1, 2, 3, 4, 5));
 	}
 
 	@Override
@@ -79,4 +81,6 @@ public class Exit extends Entity {
 		
 		super.draw();
 	}
+	
+	public static final SpriteSheet SS_TELEPORTER = new SpriteSheet("res/texture/entity/teleporter.png", 6, 1);
 }

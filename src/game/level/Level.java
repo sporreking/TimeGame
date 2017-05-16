@@ -36,6 +36,7 @@ import sk.physics.Shape;
 import sk.physics.World;
 import sk.util.vector.Vector2f;
 import sk.util.vector.Vector3f;
+import sk.util.vector.Vector4f;
 
 public class Level extends Node {
 	
@@ -80,10 +81,10 @@ public class Level extends Node {
 		player2.get(PlayerLogic.class).setLevel(this);
 		
 		Texture forestBorder = new Texture();
-		forestBorder = forestBorder.generate(1, 1, new int[] {0xff00ffff});
+		forestBorder = forestBorder.generate(1, 1, new int[] {0xff480000});
 
 		Texture iceBorder = new Texture();
-		iceBorder = iceBorder.generate(1, 1, new int[] {0xffff00ff});
+		iceBorder = iceBorder.generate(1, 1, new int[] {0xffb4b4ff});
 		
 		background = new Chunk(0, 0, forestBorder, iceBorder);
 		
@@ -456,6 +457,26 @@ public class Level extends Node {
 			}
 		}
 
+		// Ze players
+		if (player2.playerLogic.isHeld()) {
+			player2.draw();
+			player1.draw();
+		} else {
+			player1.draw();
+			player2.draw();			
+		}
+
+		// Draw entities and such
+		enemies.draw();
+		entities.draw();
+
+		// foreground chunks
+		for(int i = 0; i < data[0].chunksY; i++) {
+			for(int j = 0; j < data[0].chunksX; j++) {
+				chunks[currentSheet][i][j].draw();
+			}
+		}
+		
 		// The top and bottom
 		Transform transform = background.get(Transform.class);
 		for (int i = 0; i < data[0].chunksX; i++) {
@@ -481,27 +502,13 @@ public class Level extends Node {
 			}
 		}
 		
-		// Draw entities and such
-		enemies.draw();
-		entities.draw();
-
-		// Ze players
-		if (player2.playerLogic.isHeld()) {
-			player2.draw();			
+		if(player1.shouldDie) {
 			player1.draw();
-		} else {
-			player1.draw();
-			player2.draw();			
-		}
-
-
-		// foreground chunks
-		for(int i = 0; i < data[0].chunksY; i++) {
-			for(int j = 0; j < data[0].chunksX; j++) {
-				chunks[currentSheet][i][j].draw();
-			}
 		}
 		
+		if(player2.shouldDie) {
+			player2.draw();
+		}
 		
 		hud.draw();
 	}
