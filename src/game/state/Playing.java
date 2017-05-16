@@ -7,6 +7,8 @@ import java.util.Collections;
 
 import org.lwjgl.glfw.GLFW;
 
+import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
+
 import game.TG;
 import game.level.Level;
 import game.level.LevelLoader;
@@ -26,7 +28,7 @@ public class Playing implements GameState {
 	private Level level;
 	
 	//TODO: Change to dynamic choice
-	public String chapter = "1";
+	public String chapter = "Chapter 1";
 	
 	private ArrayList<String> levels;
 	public int current;
@@ -52,6 +54,7 @@ public class Playing implements GameState {
 		
 		setupChapter();
 		
+		current = 3;
 		String prefix = chapter + "/" + levels.get(current);
 		level = new Level(player1, player2, LevelLoader.load(prefix + "_0"),
 				LevelLoader.load(prefix + "_1"));

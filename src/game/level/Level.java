@@ -66,6 +66,9 @@ public class Level extends Node {
 	private ParallaxRender[] pr_1;
 	private ParallaxRender[] pr_2;
 	
+	private float cameraShakeTime;
+	private float cameraAmplitude;
+	
 	private boolean promptRestart = false;
 	private ArrayList<SpawnPoint> spawnPoints;
 	
@@ -326,6 +329,11 @@ public class Level extends Node {
 		player2.switchTime();
 	}
 	
+	public void shakeCamera(float time, float amplitude) {
+		cameraShakeTime = time;
+		cameraAmplitude = amplitude;
+	}
+	
 	private void checkBounds() {
 		Transform t;
 		Player p;
@@ -367,6 +375,13 @@ public class Level extends Node {
 				Math.abs((t1.position.y - t2.position.y) * Window.getAspectRatio())) / 2);
 		Vector2f targetPosition = t1.position.clone().add(t2.position).scale(0.5f);
 		
+		// Make sure the target won't show chunks that are outside.
+		if (targetPosition.y + targetScale > 0.5f) {
+			targetPosition.y = 0.5f - targetScale;
+		} else if (targetPosition.y - targetScale < 0.5f - data[currentSheet].chunksY) {
+			targetPosition.y = 0.5f - data[currentSheet].chunksY + targetScale;
+		}
+		
 		Camera.DEFAULT.scale.x = targetScale;
 		Camera.DEFAULT.scale.y = targetScale;
 		Camera.DEFAULT.position = targetPosition;
@@ -392,19 +407,51 @@ public class Level extends Node {
 		float targetScale = Math.max(.4f, Math.max(Math.abs(t1.position.x - t2.position.x) * 1.1f + 0.5f,
 				Math.abs((t1.position.y - t2.position.y) * Window.getAspectRatio())) / 2);
 		
+		
+		// We can't zoom out more! NOOOO!
+		if (targetScale * 2 > data[currentSheet].chunksY) {
+			targetScale = data[currentSheet].chunksY / 2.0f;
+		} else {
+			// Use the default calculation
+		}
+		
 		float scale = (float) (Camera.DEFAULT.scale.x - (Camera.DEFAULT.scale.x - targetScale) * CameraScaleSpeed * Time.getDelta());
 		
+		// Take what is closer,
+		Vector2f targetPosition = t1.position.clone().add(t2.position).scale(0.5f);
+
 		if (Math.abs(scale - targetScale) < 0.0001f) {
 			scale = targetScale;
 		}
 		Camera.DEFAULT.scale.x = scale;
 		Camera.DEFAULT.scale.y = scale;
 
-		Vector2f targetPosition = t1.position.clone().add(t2.position).scale(0.5f);
+		// Make sure the target won't show chunks that are outside.
+		if (targetPosition.y + scale > 0.5f) {
+			targetPosition.y = 0.5f - scale;
+		} else if (targetPosition.y - scale < 0.5f - data[currentSheet].chunksY) {
+			targetPosition.y = 0.5f - data[currentSheet].chunksY + scale;
+		}
 		
 		Camera.DEFAULT.position.add(
 				targetPosition.sub(Camera.DEFAULT.position)
 				.scale((float) (CameraMoveSpeed * Time.getDelta())));
+		
+		// Make sure the cam doesn't show anything, even if we change the zoom quickly
+		if (Camera.DEFAULT.position.y + scale > 0.5f) {
+			Camera.DEFAULT.position.y = 0.5f - scale;
+		} else if (Camera.DEFAULT.position.y - scale < -0.5f - data[currentSheet].chunksY) {
+			Camera.DEFAULT.position.y = 0.5f - data[currentSheet].chunksY + scale;
+		}
+		
+		// Shake the camera if it is needed
+		if (cameraShakeTime > 0) {
+			float delta = (float) Time.getDelta();
+			cameraShakeTime -= delta;
+			
+			Vector2f offset = new Vector2f((float) (Math.random() - 0.5f) * cameraAmplitude, (float) (Math.random() - 0.5f) * cameraAmplitude);
+			Camera.DEFAULT.position.add(offset);
+		}
 		
 		// Update the position of the listener
 		AudioManager.setListenerPosition(new Vector3f(Camera.DEFAULT.position.x, Camera.DEFAULT.position.y, 0));

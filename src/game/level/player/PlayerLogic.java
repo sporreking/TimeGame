@@ -121,6 +121,7 @@ public class PlayerLogic extends Launchable {
 				switchTurn = !switchTurn;
 				switchTimer = switchCooldown;
 				level.switchTime();
+				level.shakeCamera(0.05f, 0.03f);
 				Hud.changeEnergy(-switchCost);
 			}
 		}
@@ -187,6 +188,10 @@ public class PlayerLogic extends Launchable {
 			break;
 		case NORMAL:
 			// Ground check
+			if (thrownLastFrame) {
+				thrownLastFrame = false;
+			}
+
 			groundCheck();
 			
 			// Movement
@@ -222,18 +227,15 @@ public class PlayerLogic extends Launchable {
 		
 			float friction = player.grounded ? (onIce ? iceFriction : groundFriction) : airFriction;
 			Vector2f bodyVelocity = body.getVelocity(); 
-			// Makesure we don't mess with the movement of the platform
+			// Make sure we don't mess with the movement of the platform
 			bodyVelocity.sub(platformVelocity);
 			platformVelocity.x = 0;
 			platformVelocity.y = 0;
 			
 			// Add in the velocity we normally have
-				v = Vector2f.add(
-						v, 
-						new Vector2f(bodyVelocity.x * friction, 
-							Math.min(bodyVelocity.y, 
-									bodyVelocity.y * (Keyboard.down(keyJump) || thrown ? 1 : jumpFriction))
-						), null);
+				v.add(new Vector2f(bodyVelocity.x * friction, 
+							Math.min(bodyVelocity.y, bodyVelocity.y * 
+							(Keyboard.down(keyJump) || thrown ? 1 : jumpFriction))));
 
 				if (Math.abs(v.x) > maxSpeed && !thrown) {
 					v.x = Math.signum(v.x) * maxSpeed;
@@ -382,15 +384,20 @@ public class PlayerLogic extends Launchable {
 		holding = false;
 	}
 
+	
+	boolean thrownLastFrame = false;
 	@Override
 	public boolean launch(Vector2f direction) {
-		if (holder == null) return false;
-		PlayerLogic c = holder.get(PlayerLogic.class);
+		PlayerLogic c = null;
+		if (holder != null)
+			c = holder.get(PlayerLogic.class);
 		
 		if (c != null)
 			c.drop();
 		
 		this.body.setVelocity(direction);
+		
+		thrownLastFrame = true;
 		
 		held = false;
 		holder = null;

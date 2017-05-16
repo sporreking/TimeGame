@@ -14,6 +14,7 @@ import sk.gfx.Transform;
 import sk.physics.Body;
 import sk.physics.Shape;
 import sk.util.vector.Vector2f;
+import sun.launcher.resources.launcher;
 
 public class Swallower extends Component {
 	
@@ -39,6 +40,7 @@ public class Swallower extends Component {
 	private Random random;
 	
 	private int dir = -1;
+	private float pushSpeed = 0.01f;
 	
 	public Swallower() {
 		random = new Random();
@@ -102,10 +104,12 @@ public class Swallower extends Component {
 		} else if(swallowed == e.l.player1) {
 			if(e.get(Body.class).isCollidingWithTags("p2")) {
 				pop();
+				push(e.l.player2);
 			}
 		} else if(swallowed == e.l.player2) {
 			if(e.get(Body.class).isCollidingWithTags("p1")) {
 				pop();
+				push(e.l.player1);
 			}
 		}
 		
@@ -113,6 +117,22 @@ public class Swallower extends Component {
 		
 		if(timer <= 0)
 			devour();
+	}
+
+	// Send them flying
+	private void push(Player p) {
+		
+		e.l.shakeCamera(0.1f, 0.03f);
+		
+		Vector2f distance = p.transform.position.sub(e.transform.position.clone());
+		
+ 		distance.normalise();
+		distance.y += 0.5f;
+		distance.normalise();
+		distance.scale(pushSpeed);
+		
+		System.out.println(distance);
+		p.playerLogic.launch(distance);
 	}
 	
 	private void flip() {
