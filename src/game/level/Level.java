@@ -136,6 +136,8 @@ public class Level extends Node {
 		terrain[1].setTag("ice");
 		
 		spawnPlayers();
+		
+		initCamera();
 	}
 	
 	private void spawnPlayers() {
@@ -338,6 +340,18 @@ public class Level extends Node {
 		}
 	}
 	
+	private void initCamera() {
+		Transform t1 = player1.get(Transform.class);
+		Transform t2 = player2.get(Transform.class);
+		
+		float targetScale = Math.max(.4f, Math.max(Math.abs(t1.position.x - t2.position.x) * 1.1f + 0.5f,
+				Math.abs((t1.position.y - t2.position.y) * Window.getAspectRatio())) / 2);
+		Vector2f targetPosition = t1.position.clone().add(t2.position).scale(0.5f);
+		
+		Camera.DEFAULT.scale.x = targetScale;
+		Camera.DEFAULT.scale.y = targetScale;
+		Camera.DEFAULT.position = targetPosition;
+	}
 	
 	private void adjustCamera() {
 		Transform t1 = player1.get(Transform.class);
