@@ -90,7 +90,6 @@ public class Rock extends Entity {
 				}
 			}
 		}
-		
 	}
 
 	Transform transform;

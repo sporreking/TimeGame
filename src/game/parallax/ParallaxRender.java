@@ -47,6 +47,6 @@ public class ParallaxRender extends Renderer {
 		
 		super.getTexture().bind(0);
 		
-		super.getMesh().draw();		
+		super.getMesh().draw();
 	}
 }

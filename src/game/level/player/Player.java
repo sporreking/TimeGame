@@ -1,5 +1,6 @@
 package game.level.player;
 
+import game.TG;
 import game.level.Chunk;
 import game.level.resources.Launchable;
 import sk.debug.Debug;
@@ -32,7 +33,7 @@ public class Player extends Entity {
 	public TriggerBody pickupTrigger;
 	public PlayerLogic playerLogic;
 	public Renderer renderer;
-	public AnimationHandler ah;
+	public PlayerAnimation ah;
 	
 	protected boolean running = false;
 	protected boolean grounded = false;
@@ -50,7 +51,8 @@ public class Player extends Entity {
 				new Vector2f(-0.5f,  0.5f),
 				new Vector2f( 0.5f,  0.5f),
 				new Vector2f( 0.5f, -0.35f),
-				new Vector2f( 0.0f, -0.5f),
+				new Vector2f( 0.2f, -0.5f),
+				new Vector2f(-0.2f, -0.5f),
 				new Vector2f(-0.5f, -0.35f)
 				})).setTag(isBoy ? "p1" : "p2");
 		
@@ -67,7 +69,7 @@ public class Player extends Entity {
 				new Vertex2D(-1f, -.2f / .4f, 0, 1)
 		}, 0, 1, 3, 3, 1, 2));
 		
-		ah = new AnimationHandler(this);
+		ah = new PlayerAnimation(this);
 		
 		add(transform);
 		add(body);
@@ -129,10 +131,22 @@ public class Player extends Entity {
 		if (alive && enabled) {
 			super.draw();
 		}
+		
+		Debug.draw();
+	}
+	
+	public Player setAlive(boolean alive) {
+		this.alive = alive;
+		
+		return this;
 	}
 
 	public void switchTime() {
 		if (!playerLogic.launchableIsPlayer())
 			playerLogic.tryThrow();
+	}
+
+	public boolean isGrounded() {
+		return grounded;
 	}
 }

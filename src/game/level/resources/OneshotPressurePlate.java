@@ -4,9 +4,9 @@ import game.level.Level;
 import sk.gfx.Texture;
 import sk.physics.Collision;
 
-public class OneShotPressurePlate extends PressurePlate {
+public class OneshotPressurePlate extends PressurePlate {
 	
-	public OneShotPressurePlate(Level level, int layer, float x, float y) {
+	public OneshotPressurePlate(Level level, int layer, float x, float y) {
 		super(level, layer, x, y);
 		renderer.setTexture(new Texture("res/texture/temp.png"));
 	}

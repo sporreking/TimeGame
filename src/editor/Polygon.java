@@ -10,9 +10,9 @@ import sk.entity.Entity;
 import sk.gfx.Camera;
 import sk.util.vector.Vector2f;
 
-public class Polygon extends Entity {
+public class Polygon extends Entity implements EditObject {
 	
-	public boolean current = false;
+	private boolean current = false;
 	
 	private ArrayList<Vector2f> points = new ArrayList<>();
 	
@@ -109,7 +109,7 @@ public class Polygon extends Entity {
 		}
 		
 		if(temp.isEmpty())
-			es.removePolygon();
+			es.removeSelected();
 		points = temp;
 		currentPoint--;
 	}
@@ -202,5 +202,9 @@ public class Polygon extends Entity {
 		p.currentPoint = currentPoint;
 		
 		return p;
+	}
+	
+	public void setCurrent(boolean current) {
+		this.current = current;
 	}
 }

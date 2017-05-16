@@ -5,16 +5,18 @@ import sk.gfx.Transform;
 import sk.physics.Body;
 import sk.util.vector.Vector2f;
 
-public class Movable extends Component {
+public class Moveable extends Component {
 	
 	Body body;
 	Transform transform;
 	
 	Vector2f[] targets;
 	int target = 0;
-	float speed = 1;
+	float speed = 0.1f;
 	
-	public Movable(Vector2f a, Vector2f b, int target, float speed) {
+	int buttonsDown = 0;
+	
+	public Moveable(Vector2f a, Vector2f b, int target, float speed) {
 		targets = new Vector2f[2];
 		targets[0] = a.clone();
 		targets[1] = b.clone();
@@ -71,5 +73,19 @@ public class Movable extends Component {
 
 	public void setSpeed(float speed) {
 		this.speed = speed;
+	}
+
+	public void open() {
+		if (buttonsDown == 0) {
+			setTarget(1);
+		}
+		buttonsDown++;
+	}
+
+	public void close() {
+		buttonsDown--;
+		if (buttonsDown == 0) {
+			setTarget(0);
+		}
 	}
 }

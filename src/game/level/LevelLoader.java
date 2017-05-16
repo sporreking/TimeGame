@@ -1,7 +1,6 @@
 package game.level;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -9,9 +8,8 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
-import editor.Polygon;
+import editor.EditObject;
 import sk.gfx.SpriteSheet;
-import sk.gfx.Texture;
 import sk.util.vector.Vector2f;
 
 public class LevelLoader {
@@ -81,6 +79,7 @@ public class LevelLoader {
 		ld.chunksY = buffer.getShort();
 		
 		ld.terrain = new ArrayList<>();
+		ld.entities = new ArrayList<>();
 		
 		while(buffer.hasRemaining()) {
 			byte b = buffer.get();
@@ -101,6 +100,15 @@ public class LevelLoader {
 				ld.terrain.add(points);
 				
 				break;
+			case 0x02:
+				
+				short index = buffer.getShort();
+				
+				int value = buffer.getInt();
+				
+				Vector2f position = new Vector2f(buffer.getFloat() * 4f / 3f, buffer.getFloat());
+				
+				ld.entities.add(new EntityData(index, position, value));
 			}
 		}
 		
@@ -108,12 +116,12 @@ public class LevelLoader {
 	}
 	
 	public static final void save(String name, short chunkSize, short chunksX, short chunksY,
-			ArrayList<Polygon> polygons) {
+			ArrayList<EditObject> objects) {
 		
 		try {
 			
 			// Open file
-			File file = new File(name + ".level");
+			File file = new File(name);
 			
 			
 			
@@ -129,8 +137,8 @@ public class LevelLoader {
 			// Size
 			int size = HEADER_SIZE;
 			
-			for(Polygon p : polygons) {
-				size += p.bytes();
+			for(EditObject eo : objects) {
+				size += eo.bytes();
 			}
 			
 			// Write
@@ -141,8 +149,8 @@ public class LevelLoader {
 			buffer.putShort(chunksX);
 			buffer.putShort(chunksY);
 			
-			for(Polygon p : polygons) {
-				p.store(buffer);
+			for(EditObject eo : objects) {
+				eo.store(buffer);
 			}
 			
 			buffer.flip();
@@ -157,6 +165,7 @@ public class LevelLoader {
 			e.printStackTrace();
 		}
 		
+		System.out.println("Saved level");
 	}
 	
 	private static final byte[] HEADER_TOP = {'L', 'E', 'V', 'E', 'L'};
@@ -175,10 +184,19 @@ public class LevelLoader {
 	 * 
 	 * Polygon:
 	 * {
-	 * 2b			|	0x01
+	 * 1b			|	0x01
 	 * 2b			|	polyCount
 	 * 4b*polyCount	|	x
 	 * 4b*polyCount	|	y
+	 * }
+	 * 
+	 * Entity:
+	 * {
+	 * 1b			|	0x02
+	 * 2b			|	index
+	 * 4b			|	value
+	 * 4b			|	x
+	 * 4b			|	y
 	 * }
 	 */
 }
