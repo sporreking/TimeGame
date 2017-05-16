@@ -449,7 +449,16 @@ public class Level extends Node {
 			float delta = (float) Time.getDelta();
 			cameraShakeTime -= delta;
 			
-			Vector2f offset = new Vector2f((float) (Math.random() - 0.5f) * cameraAmplitude, (float) (Math.random() - 0.5f) * cameraAmplitude);
+			/*
+			 * If you are inspecting this code, you might be thinking:
+			 * This creates tendancies towards the diagonals, but this
+			 * feels better, I don't know why, but it feels more random
+			 * whene the diagonals are over represented.
+			 */
+			
+			float x = (float) (Math.random() - 0.5f) * cameraAmplitude;
+			float y = (float) (Math.random() - 0.5f) * cameraAmplitude;
+			Vector2f offset = new Vector2f(x, y);
 			Camera.DEFAULT.position.add(offset);
 		}
 		

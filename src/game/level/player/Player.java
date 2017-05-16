@@ -176,4 +176,8 @@ public class Player extends Entity {
 	public int getDir() {
 		return dir;
 	}
+
+	public void setDir(int d) {
+		dir = d;
+	}
 }

@@ -83,7 +83,8 @@ public class Playing implements GameState {
 		
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_ESCAPE))
-			GameStateManager.enterState(TG.GS_MAIN_MENU);
+			Game.stop();
+		//GameStateManager.enterState(TG.GS_MAIN_MENU);
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_R)) {
 			playLevel();
