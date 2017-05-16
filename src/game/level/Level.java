@@ -26,6 +26,7 @@ import sk.game.Time;
 import sk.game.Window;
 import sk.gfx.Camera;
 import sk.gfx.Mesh;
+import sk.gfx.Renderer;
 import sk.gfx.SpriteSheet;
 import sk.gfx.Texture;
 import sk.gfx.Transform;
@@ -43,6 +44,7 @@ public class Level extends Node {
 	public int currentSheet = 0;
 	
 	public Chunk[][][] chunks;
+	public Chunk background;
 	public World[] worlds;
 	public Body[] terrain;
 	
@@ -63,6 +65,7 @@ public class Level extends Node {
 	private ParallaxRender[] pr_1;
 	private ParallaxRender[] pr_2;
 	
+	private boolean promptRestart = false;
 	private ArrayList<SpawnPoint> spawnPoints;
 	
 	public Level(Player player1, Player player2, LevelData... levelData) {
@@ -76,11 +79,18 @@ public class Level extends Node {
 		player1.get(PlayerLogic.class).setLevel(this);
 		player2.get(PlayerLogic.class).setLevel(this);
 		
-		hud = new Hud();
+		Texture forestBorder = new Texture();
+		forestBorder = forestBorder.generate(1, 1, new int[] {0xff00ffff});
+
+		Texture iceBorder = new Texture();
+		iceBorder = iceBorder.generate(1, 1, new int[] {0xffff00ff});
+		
+		background = new Chunk(0, 0, forestBorder, iceBorder);
+		
+		hud = new Hud(this);
 		
 		worlds = new World[levelData.length];
 		terrain = new Body[levelData.length];
-		//r_bg = new Renderer[levelData.length];
 		
 		createParallax();
 		
@@ -216,19 +226,27 @@ public class Level extends Node {
 				plateConnections.add(ed.value);
 				entities.add(oplate);
 				break;
-			case 9: // Movable Door
+			case 9: { // Movable Door
 				MoveableDoor door = new MoveableDoor(this, i, ed.position.x, ed.position.y);
 				doors.put(ed.value, door);
 				entities.add(door);
 				break;
+			}
 			case 10: // Door Position
 				doorPositions.put(ed.value, ed.position);
 				break;
 			// FOREGOTTEN STUFF //
-			case 11:
+			case 11: // Battery
 				entities.add(new Battery(this, i, ed.position.x, ed.position.y));
 				break;
-			default:
+			case 12: {
+				MoveableDoor door = new MoveableDoor(this, i, ed.position.x, ed.position.y);
+				door.get(Transform.class).rotation = (float) (Math.PI * 0.5f);
+				doors.put(ed.value, door);
+				entities.add(door);
+				break;
+			}
+			default: // Rotated door
 				System.out.println("Error in level file, unknown entity: " + ed.id);
 				break;
 		 	}	
@@ -250,7 +268,8 @@ public class Level extends Node {
 				if ((connections & 1) == 1) {
 					// We connect to this door
 					MoveableDoor door = doors.get(1 << n);
-					plates.get(j).connect(door.getConnectable());
+					if (door != null)
+						plates.get(j).connect(door.getConnectable());
 
 				}
 				// Try the next bit
@@ -307,7 +326,6 @@ public class Level extends Node {
 	}
 	
 	private void checkBounds() {
-		
 		Transform t;
 		Player p;
 		for (int i = 0; i < 2; i++) {
@@ -358,9 +376,11 @@ public class Level extends Node {
 		Transform t2 = player2.get(Transform.class);
 		
 		if (!player1.isAlive()) {
+			promptRestart = true;
 			t1 = t2;
 		}
 		if (!player2.isAlive()) {
+			promptRestart = true;
 			t2 = t1;
 		}
 		
@@ -425,9 +445,47 @@ public class Level extends Node {
 	
 	@Override
 	public void draw() {
+		// Paralax
 		pr_2[currentSheet].draw();
 		pr_1[currentSheet].draw();
+
+		// background chunks
+		for(int i = 0; i < data[0].chunksY; i++) {
+			for(int j = 0; j < data[0].chunksX; j++) {
+				chunks[currentSheet][i][j].drawBG();
+			}
+		}
+
+		// The top and bottom
+		Transform transform = background.get(Transform.class);
+		for (int i = 0; i < data[0].chunksX; i++) {
+			for (int j = -1; j < data[0].chunksY + 2; j += data[0].chunksY + 1) {
+				transform.position.set(i * Chunk.SCALE, j * Chunk.SCALE);
+				if (currentSheet == 0) {
+					background.draw();
+				} else {
+					background.drawBG();
+				}
+			}
+		}
 		
+		// Left and right wall
+		for (int i = -1; i < data[0].chunksX + 2; i += data[0].chunksY + 2) {
+			for (int j = -1; j < data[0].chunksY + 1; j++) {
+				transform.position.set(i * Chunk.SCALE, j * Chunk.SCALE);
+				if (currentSheet == 0) {
+					background.draw();
+				} else {
+					background.drawBG();
+				}
+			}
+		}
+		
+		// Draw entities and such
+		enemies.draw();
+		entities.draw();
+
+		// Ze players
 		if (player2.playerLogic.isHeld()) {
 			player2.draw();			
 			player1.draw();
@@ -436,14 +494,14 @@ public class Level extends Node {
 			player2.draw();			
 		}
 
+
+		// foreground chunks
 		for(int i = 0; i < data[0].chunksY; i++) {
 			for(int j = 0; j < data[0].chunksX; j++) {
 				chunks[currentSheet][i][j].draw();
 			}
 		}
 		
-		enemies.draw();
-		entities.draw();
 		
 		hud.draw();
 	}
@@ -466,5 +524,9 @@ public class Level extends Node {
 
 	public void exit() {
 		TG.GS_PLAYING.nextLevel();
+	}
+
+	public boolean isPromptingRestart() {
+		return promptRestart;
 	}
 }

@@ -30,12 +30,12 @@ public class MoveableDoor extends Entity {
 		
 		@Override
 		public void pressed() {
-			getParent().get(Moveable.class).switchTarget();
+			getParent().get(Moveable.class).open();
 		}
 		
 		@Override
 		public void released() {
-			getParent().get(Moveable.class).switchTarget();
+			getParent().get(Moveable.class).close();
 		}
 	}
 

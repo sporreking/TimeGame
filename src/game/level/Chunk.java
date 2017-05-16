@@ -8,6 +8,13 @@ import sk.gfx.Transform;
 
 public class Chunk extends Entity {
 	
+	class ExtraRenderer extends Renderer {
+
+		public ExtraRenderer(Mesh mesh) {
+			super(mesh);
+		}
+	}
+	
 	public static final int SIZE = 128;
 	public static final float SCALE = 1f;
 	public static final float PIXEL_SCALE = (float) ((float) SCALE / (float) SIZE);
@@ -20,6 +27,14 @@ public class Chunk extends Entity {
 		
 		add(0, transform);
 		add(0, new Renderer(Mesh.QUAD).setTexture(texture));
+		add(0, new ExtraRenderer(Mesh.QUAD).setTexture(bg));
 	}
 	
+	public void draw() {
+		get(Renderer.class).draw();
+	}
+	
+	public void drawBG() {
+		get(ExtraRenderer.class).draw();
+	}
 }

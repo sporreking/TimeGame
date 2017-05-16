@@ -14,6 +14,8 @@ public class Moveable extends Component {
 	int target = 0;
 	float speed = 0.1f;
 	
+	int buttonsDown = 0;
+	
 	public Moveable(Vector2f a, Vector2f b, int target, float speed) {
 		targets = new Vector2f[2];
 		targets[0] = a.clone();
@@ -71,5 +73,19 @@ public class Moveable extends Component {
 
 	public void setSpeed(float speed) {
 		this.speed = speed;
+	}
+
+	public void open() {
+		if (buttonsDown == 0) {
+			setTarget(1);
+		}
+		buttonsDown++;
+	}
+
+	public void close() {
+		buttonsDown--;
+		if (buttonsDown == 0) {
+			setTarget(0);
+		}
 	}
 }

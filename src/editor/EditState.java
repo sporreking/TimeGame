@@ -26,6 +26,7 @@ import sk.entity.Node;
 import sk.game.Game;
 import sk.game.Window;
 import sk.gamestate.GameState;
+import sk.gamestate.GameStateManager;
 import sk.gfx.Camera;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
@@ -138,6 +139,7 @@ public class EditState implements GameState {
 		gui = new Container();
 		
 		//B1
+		/*
 		GUIButton b_1 = new GUIButton(-1, 1, 25, -25, 50, 50);
 		b_1.setTexture(t_red);
 		b_1.setOnClick((sst) -> guiPress(0));
@@ -150,6 +152,7 @@ public class EditState implements GameState {
 		b_2.setOnClick((sst) -> guiPress(1));
 		b_2.setText(new GUIText("E", 50, 50, Font.getFont("Arial")));
 		gui.add(new Entity().add(b_2));
+		*/
 	}
 	
 	private void guiPress(int i) {
@@ -269,7 +272,21 @@ public class EditState implements GameState {
 			}
 		}
 		
+		// Change state
+		if (Keyboard.pressed(GLFW.GLFW_KEY_C)) {
+			if (mode == AddMode.ENTITY) {
+				mode = AddMode.POLYGON;
+			} else {
+				mode = AddMode.ENTITY;
+			}
+		}
+		
 		if(Keyboard.down(GLFW.GLFW_KEY_LEFT_CONTROL)) {
+			
+			// Restart the state
+			if (Keyboard.pressed(GLFW.GLFW_KEY_R)) {
+				GameStateManager.enterState(new EditState(path, true, chunksX, chunksY));
+			}
 			
 			if(Keyboard.down(GLFW.GLFW_KEY_LEFT_SHIFT) && Keyboard.pressed(GLFW.GLFW_KEY_V)) {
 				Vector2f b_scale = Camera.DEFAULT.scale;
@@ -300,7 +317,7 @@ public class EditState implements GameState {
 						-Chunk.SIZE * chunksY, null);
 				
 				try {
-					ImageIO.write(out, "png", new File("output.png"));
+					ImageIO.write(out, "png", new File(path + ".png"));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -396,6 +413,8 @@ public class EditState implements GameState {
 		if(Keyboard.pressed(GLFW.GLFW_KEY_G)) {
 			tr_gridSnap = !tr_gridSnap;
 		}
+		
+		
 	}
 	
 	private void updateCamera(double delta) {

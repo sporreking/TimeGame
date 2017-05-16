@@ -51,7 +51,8 @@ public class Player extends Entity {
 				new Vector2f(-0.5f,  0.5f),
 				new Vector2f( 0.5f,  0.5f),
 				new Vector2f( 0.5f, -0.35f),
-				new Vector2f( 0.0f, -0.5f),
+				new Vector2f( 0.2f, -0.5f),
+				new Vector2f(-0.2f, -0.5f),
 				new Vector2f(-0.5f, -0.35f)
 				})).setTag(isBoy ? "p1" : "p2");
 		
@@ -81,8 +82,6 @@ public class Player extends Entity {
 	public void kill() {
 		body.setTrigger(true);
 		alive = false;
-		
-		TG.GS_PLAYING.playLevel();
 	}
 	
 	public boolean isAlive() {
@@ -132,6 +131,8 @@ public class Player extends Entity {
 		if (alive && enabled) {
 			super.draw();
 		}
+		
+		Debug.draw();
 	}
 	
 	public Player setAlive(boolean alive) {

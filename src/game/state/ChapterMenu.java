@@ -73,6 +73,7 @@ public class ChapterMenu implements GameState {
 		b_next.setText(new GUIText(">", SIZE, SIZE, Font.getFont(Font.MONOSPACED)));
 		next = new Entity().add(b_next);
 		b_next.setOnClick((sst) -> page(1));
+		
 	}
 	
 	private void page(int inc) {
@@ -106,11 +107,11 @@ public class ChapterMenu implements GameState {
 				Entity e = new Entity().add(b);
 				e.get(SST.class).store("chapter", caption);
 				page.add(e);
+				
 				b.setOnClick((sst) -> {
 					TG.GS_PLAYING.chapter = (String) sst.get("chapter");
 					GameStateManager.enterState(TG.GS_PLAYING);
 				});
-				
 			}
 		}
 	}

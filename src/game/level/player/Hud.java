@@ -2,7 +2,9 @@ package game.level.player;
 
 import java.awt.Font;
 
+import game.level.Level;
 import sk.entity.Entity;
+import sk.game.Time;
 import sk.gfx.Texture;
 import sk.gfx.Transform;
 import sk.gfx.gui.GUIElement;
@@ -16,18 +18,26 @@ public class Hud extends Entity {
 	
 	public static final Font SCORE_FONT = new Font(Font.SANS_SERIF, 0, 50);
 	public static final Vector4f SCORE_COLOR = new Vector4f(1, 1, 1, 0.5f);
-	public static float GUI_SCALE = 1.0f;
+	public static final float GUI_SCALE = 1.0f;
+	public static final float RESTART_TEXT_ALPHA = 0.5f;
+	public static final float RESTART_TEXT_ALPHA_RANGE = 0.3f;
 	
-	static private int score;
-	static private float energy;
+	private static int score;
+	private static float energy;
 	
-	static private float energyDecreaseRate = 0.05f;
+	private static float energyDecreaseRate = 0.01f;
+
+	private float restartTextAlphaTarget = 0;
+	private Vector4f restartTextColor = new Vector4f(1, 1, 1, 0);
 	
-	Entity energyBar, scoreLabel;
+	Entity energyBar, scoreLabel, restartLabel;
 	GUIText scoreText;
+	GUIText restartText;
 	
+	Level level;
 	
-	public Hud() {
+	public Hud(Level level) {
+		this.level = level;
 		score = 0;
 		energy = 1.0f;
 			
@@ -51,6 +61,15 @@ public class Hud extends Entity {
 						new Texture("res/texture/mask.png"), 
 						new Texture("res/texture/on.png"), 
 						new Texture("res/texture/off.png")));
+	
+		restartLabel = new Entity();
+		element = new GUIElement(0, 1, 0, -100, (int) (400 * GUI_SCALE), (int) (40 * GUI_SCALE));
+		element.setHue(new Vector4f(0, 0, 0, 0));
+		restartText = new GUIText("Press 'R' to restart", (int) (600 * GUI_SCALE), (int) (60 * GUI_SCALE), SCORE_FONT);
+		restartText.setColor(restartTextColor);
+		element.setText(restartText);
+		
+		restartLabel.add(element);
 	}
 	
 	public static void changeEnergy(float diff) {
@@ -84,11 +103,26 @@ public class Hud extends Entity {
 		}
 		
 		energyBar.get(GUIFader.class).setThreshold(energy);
+
+		
+		if (level.isPromptingRestart()) {
+			restartTextAlphaTarget = 
+					(float) (RESTART_TEXT_ALPHA + 
+					(Math.pow(Math.sin(Time.getTime()), 2) * RESTART_TEXT_ALPHA_RANGE));
+		}
+	
+		Vector4f color = restartText.getColor();
+		float toTarget = restartTextAlphaTarget - color.getW();
+		color.setW((float) (color.getW() + toTarget * delta));
+		restartText.setColor(color);
 	}
 	
 	@Override
 	public void draw() {
 		scoreLabel.draw();
+		if (restartText.getColor().w != 0) {
+			restartLabel.draw();
+		}
 		energyBar.draw();
 	}
 
