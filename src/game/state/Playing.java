@@ -54,7 +54,7 @@ public class Playing implements GameState {
 		
 		setupChapter();
 		
-		current = 3;
+		current = 6;
 		String prefix = chapter + "/" + levels.get(current);
 		level = new Level(player1, player2, LevelLoader.load(prefix + "_0"),
 				LevelLoader.load(prefix + "_1"));

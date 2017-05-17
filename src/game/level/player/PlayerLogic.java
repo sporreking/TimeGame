@@ -54,10 +54,12 @@ public class PlayerLogic extends Launchable {
 	private float jumpFriction = 0.75f;
 	
 	private boolean holding = false;
+	private float heldJump = 0.75f;
 	private Vector2f holdPos = new Vector2f(0, 0.075f);
 	private Launchable launchable = null;
 	private boolean thrown = false;
-	private float throwSpeed = 1.0f;
+	private float throwSpeed = 0.5f;
+	private float throwTimer = 0.0f;
 	
 	private Vector2f platformVelocity = new Vector2f();
 	
@@ -127,7 +129,7 @@ public class PlayerLogic extends Launchable {
 		}
 
 		// @Picking up / Throwing
-		if (Keyboard.pressed(keyPickup) && !holding) {
+		if (Keyboard.pressed(keyPickup) && !holding && !thrown) {
 			Collision[] cs = player.pickupTrigger.getCollisions();
 			for (Collision c : cs) {
 				Launchable l = null;
@@ -172,7 +174,8 @@ public class PlayerLogic extends Launchable {
 		case HELD:
 			// Jumping out
 			if (Keyboard.pressed(keyJump)) {
-				launch(new Vector2f(0, 1));
+				((Player) holder).body.addForce(new Vector2f(0, -heldJump));
+				launch(new Vector2f(0, heldJump));
 			} else {
 				body.setVelocity(new Vector2f());
 				transform.position = holder.get(Transform.class).position.clone().add(relativePosition);
@@ -362,9 +365,10 @@ public class PlayerLogic extends Launchable {
 			if (c.other.isTrigger()) continue;
 			if (c.other.getTag().equals("moving-platform")) c.normal.negate();
 			player.grounded = c.normal.dot(UP) > minGroundAngle;
-			thrown = false;
-			if (player.grounded)
+			if (player.grounded) {
+				thrown = false;
 				break;
+			}
 		}
 	}
 
@@ -407,6 +411,7 @@ public class PlayerLogic extends Launchable {
 		player.grounded = false;
 		thrown = true;
 		state = PlayerStates.NORMAL;
+		throwTimer = 0;
 		return true;
 	}
 
