@@ -59,7 +59,6 @@ public class PlayerLogic extends Launchable {
 	private Launchable launchable = null;
 	private boolean thrown = false;
 	private float throwSpeed = 0.5f;
-	private float throwTimer = 0.0f;
 	
 	private Vector2f platformVelocity = new Vector2f();
 	
@@ -103,6 +102,8 @@ public class PlayerLogic extends Launchable {
 		player = (Player) getParent();
 		body = player.body;
 		transform = player.transform;
+		
+		switchTurn = false;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -411,7 +412,6 @@ public class PlayerLogic extends Launchable {
 		player.grounded = false;
 		thrown = true;
 		state = PlayerStates.NORMAL;
-		throwTimer = 0;
 		return true;
 	}
 
