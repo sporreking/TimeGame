@@ -22,6 +22,8 @@ public class Main {
 		System.out.println("Starting game...");
 		
 		AudioManager.start();
+		AudioManager.setGlobalLoopGain(1f);
+		AudioManager.setGlobalTempGain(.005f);
 		
 		Game.start(gp);
 		

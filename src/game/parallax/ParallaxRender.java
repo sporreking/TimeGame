@@ -1,6 +1,7 @@
 package game.parallax;
 
 import game.shaders.GameShaders;
+import sk.gfx.Camera;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
 import sk.util.vector.Vector2f;
@@ -15,6 +16,7 @@ public class ParallaxRender extends Renderer {
 
 	private float parallax;
 	private boolean invertY;
+	private boolean lockY = false;
 	
 	public ParallaxRender(Mesh mesh, float distance, boolean invertY) {
 		super(mesh);
@@ -43,10 +45,17 @@ public class ParallaxRender extends Renderer {
 		GameShaders.PARALLAX_SHADER.send1i("t_sampler", 0);
 
 		Vector2f p = camera.position.clone().scale(-parallax);
-		GameShaders.PARALLAX_SHADER.send2f("parallax", p.x, p.y * (invertY ? -1 : 1));
+		GameShaders.PARALLAX_SHADER.send2f("parallax", p.x, 
+				lockY ? 
+				camera.position.y - camera.scale.y + .5f
+				: p.y * (invertY ? -1 : 1));
 		
 		super.getTexture().bind(0);
 		
 		super.getMesh().draw();
+	}
+	
+	public void lockY(boolean lockY) {
+		this.lockY = lockY;
 	}
 }

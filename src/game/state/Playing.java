@@ -7,11 +7,13 @@ import java.util.Collections;
 
 import org.lwjgl.glfw.GLFW;
 
+import game.AudioLib;
 import game.TG;
 import game.level.Level;
 import game.level.LevelLoader;
 import game.level.player.Player;
 import sk.audio.Audio;
+import sk.audio.AudioManager;
 import sk.game.Game;
 import sk.gamestate.GameState;
 import sk.gamestate.GameStateManager;
@@ -35,6 +37,8 @@ public class Playing implements GameState {
 	public void init() {
 		Camera.DEFAULT.scale.x = .75f;
 		Camera.DEFAULT.scale.y = .75f;
+		
+		AudioManager.playSource(0, 1, 1, AudioLib.M_BG, true);
 		
 		setupChapter();
 		

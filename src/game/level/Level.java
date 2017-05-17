@@ -65,6 +65,7 @@ public class Level extends Node {
 	
 	private ParallaxRender[] pr_1;
 	private ParallaxRender[] pr_2;
+	private ParallaxRender[] pr_n1;
 	
 	private boolean promptRestart = false;
 	private ArrayList<SpawnPoint> spawnPoints;
@@ -316,6 +317,26 @@ public class Level extends Node {
 			pr_2[i].setTexture(new Texture(Playing.PREFIX_URL + TG.GS_PLAYING.chapter
 					+ "/par2_" + i + ".png"));
 		}
+		
+		//PR-1
+		pr_n1 = new ParallaxRender[2];
+		
+		for(int i = 0; i < pr_n1.length; i++) {
+			pr_n1[i] = new ParallaxRender(new Mesh(new Vertex2D[] {
+					new Vertex2D(-1f, .5f, 0, 0),
+					new Vertex2D(1f, .5f, 2, 0),
+					new Vertex2D(1f, -.5f, 2, 1),
+					new Vertex2D(-1f, -.5f, 0, 1)
+			}, 0, 1, 3, 3, 1, 2), .1f, true);
+			
+			pr_n1[i].transform.scale.x = 1;
+			pr_n1[i].transform.scale.y = 1;
+			
+			pr_n1[i].setTexture(new Texture(Playing.PREFIX_URL + TG.GS_PLAYING.chapter
+					+ "/par-1_" + i + ".png"));
+			
+			pr_n1[i].lockY(true);
+		}
 	}
 	
 	public void switchTime() {
@@ -509,6 +530,8 @@ public class Level extends Node {
 		if(player2.shouldDie) {
 			player2.draw();
 		}
+		
+		pr_n1[currentSheet].draw();
 		
 		hud.draw();
 	}

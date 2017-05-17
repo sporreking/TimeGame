@@ -2,7 +2,9 @@ package game.level.enemy;
 
 import java.util.Random;
 
+import game.AudioLib;
 import game.level.player.Player;
+import sk.audio.AudioManager;
 import sk.entity.Component;
 import sk.entity.Entity;
 import sk.gfx.Animation;
@@ -150,6 +152,7 @@ public class Swallower extends Component {
 		swallowed = null;
 		shouldDie = true;
 		e.l.worlds[e.w].removeBody(e.get(Body.class));
+		AudioManager.play(1, 1, 0, 0, 0, false, AudioLib.S_FROG_DEATH);
 	}
 	
 	private void swallow(Player p) {
