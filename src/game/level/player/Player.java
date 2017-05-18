@@ -1,8 +1,6 @@
 package game.level.player;
 
-import game.TG;
 import game.level.Chunk;
-import game.level.resources.Launchable;
 import sk.debug.Debug;
 import sk.entity.Entity;
 import sk.gfx.Animation;

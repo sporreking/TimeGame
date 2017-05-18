@@ -1,23 +1,17 @@
 package editor;
 
-import java.awt.BufferCapabilities;
-import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.Stack;
-
 import javax.imageio.ImageIO;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL13;
 
 import game.level.Chunk;
-import game.level.Level;
 import game.level.LevelData;
 import game.level.LevelLoader;
 import sk.entity.Container;
@@ -33,7 +27,6 @@ import sk.gfx.Renderer;
 import sk.gfx.Texture;
 import sk.gfx.Transform;
 import sk.gfx.gui.GUIButton;
-import sk.gfx.gui.GUIText;
 import sk.util.io.Keyboard;
 import sk.util.io.Mouse;
 import sk.util.vector.Vector2f;
@@ -155,6 +148,7 @@ public class EditState implements GameState {
 		*/
 	}
 	
+	@SuppressWarnings("unused")
 	private void guiPress(int i) {
 		guiPressed = true;
 		mode = AddMode.values()[i];

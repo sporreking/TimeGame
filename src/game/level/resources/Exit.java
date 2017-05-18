@@ -8,7 +8,6 @@ import sk.gfx.Animation;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
 import sk.gfx.SpriteSheet;
-import sk.gfx.Texture;
 import sk.gfx.Transform;
 import sk.physics.Body;
 import sk.physics.Collision;

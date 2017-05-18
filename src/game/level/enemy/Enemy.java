@@ -6,7 +6,6 @@ import sk.gfx.Animation;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
 import sk.gfx.Transform;
-import sk.physics.World;
 import sk.util.vector.Vector2f;
 
 public class Enemy extends Entity {

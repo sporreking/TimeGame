@@ -2,13 +2,8 @@ package game.level.player;
 
 import sk.physics.Body;
 import sk.physics.Collision;
-import sk.physics.TriggerBody;
 import sk.util.io.InputManager;
-import sk.util.io.Keyboard;
 import sk.util.vector.Vector2f;
-
-import org.lwjgl.glfw.GLFW;
-
 import game.level.Level;
 import game.level.resources.Key.KeyLauncher;
 import game.level.resources.Launchable;
