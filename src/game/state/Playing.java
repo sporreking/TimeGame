@@ -18,6 +18,7 @@ import sk.game.Game;
 import sk.gamestate.GameState;
 import sk.gamestate.GameStateManager;
 import sk.gfx.Camera;
+import sk.util.io.InputManager;
 import sk.util.io.Keyboard;
 
 public class Playing implements GameState {
@@ -86,7 +87,7 @@ public class Playing implements GameState {
 			Game.stop();
 		//GameStateManager.enterState(TG.GS_MAIN_MENU);
 		
-		if (Keyboard.pressed(GLFW.GLFW_KEY_R)) {
+		if (InputManager.pressed("restart")) {
 			playLevel();
 		}
 	}
