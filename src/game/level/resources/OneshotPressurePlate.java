@@ -13,8 +13,6 @@ public class OneshotPressurePlate extends PressurePlate {
 
 	@Override
 	public void update(double delta) {
-		super.update(delta);
-		
 		if (down) return;
 		for (Collision c : body.getCollisions()) {
 			if (c.other.isDynamic()) {
