@@ -34,6 +34,7 @@ import sk.gfx.Vertex2D;
 import sk.physics.Body;
 import sk.physics.Shape;
 import sk.physics.World;
+import sk.util.io.InputManager;
 import sk.util.vector.Vector2f;
 import sk.util.vector.Vector3f;
 import sk.util.vector.Vector4f;
@@ -467,8 +468,7 @@ public class Level extends Node {
 	}
 	
 	@Override
-	public void update(double delta) {
-		
+	public void update(double delta) {		
 		worlds[currentSheet].update(delta);
 		
 		adjustCamera();
