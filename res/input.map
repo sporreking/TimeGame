@@ -1,0 +1,39 @@
+p1_jump J 0 A
+p1_jump J 0 LEFTSTICK_UP
+p1_jump J 0 DPAD_UP
+p1_jump K W
+p1_left J 0 LEFTSTICK_LEFT
+p1_left J 0 DPAD_LEFT
+p1_left K A
+p1_right J 0 LEFTSTICK_RIGHT
+p1_right J 0 DPAD_RIGHT
+p1_right K D
+p1_down K S
+p1_down J 0 LEFTSTICK_DOWN
+p1_down J 0 DPAD_DOWN
+p1_pickup J 0 LEFT_BUMPER
+p1_pickup K E
+p1_switch J 0 RIGHT_BUMPER
+p1_switch K Q
+
+p2_jump J 1 A
+p2_jump J 1 LEFTSTICK_UP
+p2_jump J 1 DPAD_UP
+p2_jump K UP
+p2_left J 1 LEFTSTICK_LEFT
+p2_left J 1 DPAD_LEFT
+p2_left K LEFT
+p2_right J 1 LEFTSTICK_RIGHT
+p2_right J 1 DPAD_RIGHT
+p2_right K RIGHT
+p2_down J 1 LEFTSTICK_DOWN
+p2_down J 1 DPAD_DOWN
+p2_pickup J 1 LEFT_BUMPER
+p2_pickup K .
+p2_switch J 1 RIGHT_BUMPER
+p2_switch K ,
+
+restart K R
+restart J 1 Y
+restart J 2 Y
+
