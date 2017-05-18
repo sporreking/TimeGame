@@ -42,7 +42,7 @@ public class LockedDoor extends Entity{
 		body.setTag("locked");
 
 		renderer = new Renderer(Mesh.QUAD);
-		renderer.setTexture(new Texture("res/texture/temp.png"));
+		renderer.setTexture(T_DOOR_LOCKED);
 
 		add(transform);
 		add(body);
@@ -71,4 +71,6 @@ public class LockedDoor extends Entity{
 
 		super.draw();
 	}
+	
+	public static final Texture T_DOOR_LOCKED = new Texture("res/texture/entity/door_locked.png");
 }

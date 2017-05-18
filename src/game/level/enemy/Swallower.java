@@ -5,6 +5,7 @@ import java.util.Random;
 import game.level.player.Player;
 import sk.entity.Component;
 import sk.entity.Entity;
+import sk.game.Time;
 import sk.gfx.Animation;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
@@ -14,12 +15,13 @@ import sk.gfx.Transform;
 import sk.physics.Body;
 import sk.physics.Shape;
 import sk.util.vector.Vector2f;
+import sun.launcher.resources.launcher;
 
 public class Swallower extends Component {
 	
 	public static final double TIMER_START = 2.0;
-	private static final float SIZE = .1f;
-	private static final float SIZE_BIG = .11f;
+	private static final float SIZE = .12f;
+	private static final float SIZE_BIG = .14f;
 	
 	private Player swallowed = null;
 	
@@ -39,6 +41,7 @@ public class Swallower extends Component {
 	private Random random;
 	
 	private int dir = -1;
+	private float pushWeight = 0.9f;
 	
 	public Swallower() {
 		random = new Random();
@@ -51,12 +54,9 @@ public class Swallower extends Component {
 		e.transform.scale.x = SIZE;
 		e.transform.scale.y = SIZE;
 		
-		Body body = new Body(new Shape(new Vector2f[]{
-				new Vector2f(-.5f, .5f),
-				new Vector2f(.5f, .5f),
-				new Vector2f(.5f, -.5f),
-				new Vector2f(-.5f, -.5f)
-		})).setTrigger(true).setDynamic(false).setLayer((short) 0b0000000000000011);
+		Body body = new Body(Shape.GEN_QUAD(0.25f))
+			.setTrigger(true).setDynamic(false)
+			.setLayer((short) (e.l.P1_LAYER | e.l.P2_LAYER));
 		
 		e.add(body);
 		
@@ -102,10 +102,12 @@ public class Swallower extends Component {
 		} else if(swallowed == e.l.player1) {
 			if(e.get(Body.class).isCollidingWithTags("p2")) {
 				pop();
+				push(e.l.player2, e.l.player1);
 			}
 		} else if(swallowed == e.l.player2) {
 			if(e.get(Body.class).isCollidingWithTags("p1")) {
 				pop();
+				push(e.l.player1, e.l.player2);
 			}
 		}
 		
@@ -113,6 +115,21 @@ public class Swallower extends Component {
 		
 		if(timer <= 0)
 			devour();
+	}
+
+	// Send them flying
+	private void push(Player poper, Player swallowed) {
+		
+		e.l.shakeCamera(0.1f, 0.03f);
+		
+		Vector2f distance = poper.transform.position.clone().sub(e.transform.position.clone());
+		
+ 		distance.normalise();
+ 		distance.y += 0.25f;
+		distance.scale(pushWeight);
+		
+		poper.playerLogic.hit(0.25f, distance);
+		swallowed.playerLogic.hit(0.25f, distance.negate());
 	}
 	
 	private void flip() {
@@ -136,11 +153,11 @@ public class Swallower extends Component {
 	}
 	
 	private void devour() {
-		e.transform.scale.x = SIZE;
-		e.transform.scale.y = SIZE;
-		swallowed.kill();
+		swallowed.alive = false;
 		swallowed = null;
 		timer = TIMER_START;
+		
+		animate(a_idle);
 	}
 	
 	private void pop() {

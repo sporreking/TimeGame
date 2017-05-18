@@ -34,8 +34,10 @@ import sk.gfx.Vertex2D;
 import sk.physics.Body;
 import sk.physics.Shape;
 import sk.physics.World;
+import sk.util.io.InputManager;
 import sk.util.vector.Vector2f;
 import sk.util.vector.Vector3f;
+import sk.util.vector.Vector4f;
 
 public class Level extends Node {
 	
@@ -65,6 +67,9 @@ public class Level extends Node {
 	private ParallaxRender[] pr_1;
 	private ParallaxRender[] pr_2;
 	
+	private float cameraShakeTime;
+	private float cameraAmplitude;
+	
 	private boolean promptRestart = false;
 	private ArrayList<SpawnPoint> spawnPoints;
 	
@@ -80,10 +85,10 @@ public class Level extends Node {
 		player2.get(PlayerLogic.class).setLevel(this);
 		
 		Texture forestBorder = new Texture();
-		forestBorder = forestBorder.generate(1, 1, new int[] {0xff00ffff});
+		forestBorder = forestBorder.generate(1, 1, new int[] {0xff480000});
 
 		Texture iceBorder = new Texture();
-		iceBorder = iceBorder.generate(1, 1, new int[] {0xffff00ff});
+		iceBorder = iceBorder.generate(1, 1, new int[] {0xffb4b4ff});
 		
 		background = new Chunk(0, 0, forestBorder, iceBorder);
 		
@@ -146,6 +151,11 @@ public class Level extends Node {
 		terrain[1].setTag("ice");
 		
 		spawnPlayers();
+		
+		// We should let the physics simulate first, to make sure we place the players in a good positon. so the camera doesn't shake.
+		
+		worlds[0].update(0.5f);
+		worlds[1].update(0.5f);
 		
 		initCamera();
 	}
@@ -325,6 +335,11 @@ public class Level extends Node {
 		player2.switchTime();
 	}
 	
+	public void shakeCamera(float time, float amplitude) {
+		cameraShakeTime = time;
+		cameraAmplitude = amplitude;
+	}
+	
 	private void checkBounds() {
 		Transform t;
 		Player p;
@@ -366,6 +381,13 @@ public class Level extends Node {
 				Math.abs((t1.position.y - t2.position.y) * Window.getAspectRatio())) / 2);
 		Vector2f targetPosition = t1.position.clone().add(t2.position).scale(0.5f);
 		
+		// Make sure the target won't show chunks that are outside.
+		if (targetPosition.y + targetScale > 0.5f) {
+			targetPosition.y = 0.5f - targetScale;
+		} else if (targetPosition.y - targetScale < 0.5f - data[currentSheet].chunksY) {
+			targetPosition.y = 0.5f - data[currentSheet].chunksY + targetScale;
+		}
+		
 		Camera.DEFAULT.scale.x = targetScale;
 		Camera.DEFAULT.scale.y = targetScale;
 		Camera.DEFAULT.position = targetPosition;
@@ -391,27 +413,67 @@ public class Level extends Node {
 		float targetScale = Math.max(.4f, Math.max(Math.abs(t1.position.x - t2.position.x) * 1.1f + 0.5f,
 				Math.abs((t1.position.y - t2.position.y) * Window.getAspectRatio())) / 2);
 		
+		
+		// We can't zoom out more! NOOOO!
+		if (targetScale * 2 > data[currentSheet].chunksY) {
+			targetScale = data[currentSheet].chunksY / 2.0f;
+		} else {
+			// Use the default calculation
+		}
+		
 		float scale = (float) (Camera.DEFAULT.scale.x - (Camera.DEFAULT.scale.x - targetScale) * CameraScaleSpeed * Time.getDelta());
 		
+		// Take what is closer,
+		Vector2f targetPosition = t1.position.clone().add(t2.position).scale(0.5f);
+
 		if (Math.abs(scale - targetScale) < 0.0001f) {
 			scale = targetScale;
 		}
 		Camera.DEFAULT.scale.x = scale;
 		Camera.DEFAULT.scale.y = scale;
 
-		Vector2f targetPosition = t1.position.clone().add(t2.position).scale(0.5f);
+		// Make sure the target won't show chunks that are outside.
+		if (targetPosition.y + scale > 0.5f) {
+			targetPosition.y = 0.5f - scale;
+		} else if (targetPosition.y - scale < 0.5f - data[currentSheet].chunksY) {
+			targetPosition.y = 0.5f - data[currentSheet].chunksY + scale;
+		}
 		
 		Camera.DEFAULT.position.add(
 				targetPosition.sub(Camera.DEFAULT.position)
 				.scale((float) (CameraMoveSpeed * Time.getDelta())));
+		
+		// Make sure the cam doesn't show anything, even if we change the zoom quickly
+		if (Camera.DEFAULT.position.y + scale > 0.5f) {
+			Camera.DEFAULT.position.y = 0.5f - scale;
+		} else if (Camera.DEFAULT.position.y - scale < -0.5f - data[currentSheet].chunksY) {
+			Camera.DEFAULT.position.y = 0.5f - data[currentSheet].chunksY + scale;
+		}
+		
+		// Shake the camera if it is needed
+		if (cameraShakeTime > 0) {
+			float delta = (float) Time.getDelta();
+			cameraShakeTime -= delta;
+			
+			/*
+			 * If you are inspecting this code, you might be thinking:
+			 * This creates tendancies towards the diagonals, but this
+			 * feels better, I don't know why, but it feels more random
+			 * whene the diagonals are over represented.
+			 */
+			
+			float x = (float) (Math.random() - 0.5f) * cameraAmplitude;
+			float y = (float) (Math.random() - 0.5f) * cameraAmplitude;
+			Vector2f offset = new Vector2f(x, y);
+			Camera.DEFAULT.position.add(offset);
+		}
 		
 		// Update the position of the listener
 		AudioManager.setListenerPosition(new Vector3f(Camera.DEFAULT.position.x, Camera.DEFAULT.position.y, 0));
 	}
 	
 	@Override
-	public void update(double delta) {
-		
+	public void update(double delta) {		
 		worlds[currentSheet].update(delta);
 		
 		adjustCamera();
@@ -456,6 +518,26 @@ public class Level extends Node {
 			}
 		}
 
+		// Ze players
+		if (player2.playerLogic.isHeld()) {
+			player2.draw();
+			player1.draw();
+		} else {
+			player1.draw();
+			player2.draw();			
+		}
+
+		// Draw entities and such
+		enemies.draw();
+		entities.draw();
+
+		// foreground chunks
+		for(int i = 0; i < data[0].chunksY; i++) {
+			for(int j = 0; j < data[0].chunksX; j++) {
+				chunks[currentSheet][i][j].draw();
+			}
+		}
+		
 		// The top and bottom
 		Transform transform = background.get(Transform.class);
 		for (int i = 0; i < data[0].chunksX; i++) {
@@ -481,27 +563,13 @@ public class Level extends Node {
 			}
 		}
 		
-		// Draw entities and such
-		enemies.draw();
-		entities.draw();
-
-		// Ze players
-		if (player2.playerLogic.isHeld()) {
-			player2.draw();			
+		if(player1.shouldDie) {
 			player1.draw();
-		} else {
-			player1.draw();
-			player2.draw();			
-		}
-
-
-		// foreground chunks
-		for(int i = 0; i < data[0].chunksY; i++) {
-			for(int j = 0; j < data[0].chunksX; j++) {
-				chunks[currentSheet][i][j].draw();
-			}
 		}
 		
+		if(player2.shouldDie) {
+			player2.draw();
+		}
 		
 		hud.draw();
 	}

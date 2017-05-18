@@ -3,6 +3,7 @@ package game.level.player;
 import sk.physics.Body;
 import sk.physics.Collision;
 import sk.physics.TriggerBody;
+import sk.util.io.InputManager;
 import sk.util.io.Keyboard;
 import sk.util.vector.Vector2f;
 
@@ -54,11 +55,11 @@ public class PlayerLogic extends Launchable {
 	private float jumpFriction = 0.75f;
 	
 	private boolean holding = false;
+	private float heldJump = 0.75f;
 	private Vector2f holdPos = new Vector2f(0, 0.075f);
 	private Launchable launchable = null;
 	private boolean thrown = false;
-	private float throwSpeed = 1.0f;
-	private boolean lastMoveRight = true;
+	private float throwSpeed = 0.5f;
 	
 	private Vector2f platformVelocity = new Vector2f();
 	
@@ -71,12 +72,12 @@ public class PlayerLogic extends Launchable {
 	
 	private boolean isBoy;
 	
-	private int keyLeft;
-	private int keyRight;
-	private int keyJump;
-	private int keyDown;
-	private int keySwitch;
-	private int keyPickup;
+	private String keyLeft;
+	private String keyRight;
+	private String keyJump;
+	private String keyDown;
+	private String keySwitch;
+	private String keyPickup;
 	
 	private Level level;
 	private Player player;
@@ -89,12 +90,12 @@ public class PlayerLogic extends Launchable {
 		this.setBoy(isBoy);
 
 		// Keybindings
-		keyLeft 	= isBoy ? GLFW.GLFW_KEY_A : GLFW.GLFW_KEY_LEFT;
-		keyRight 	= isBoy ? GLFW.GLFW_KEY_D : GLFW.GLFW_KEY_RIGHT;
-		keyJump 	= isBoy ? GLFW.GLFW_KEY_W : GLFW.GLFW_KEY_UP;
-		keySwitch 	= isBoy ? GLFW.GLFW_KEY_E : GLFW.GLFW_KEY_PERIOD;
-		keyDown		= isBoy ? GLFW.GLFW_KEY_S : GLFW.GLFW_KEY_DOWN;
-		keyPickup	= isBoy ? GLFW.GLFW_KEY_Q : GLFW.GLFW_KEY_COMMA;
+		keyLeft 	= (isBoy ? "p1" : "p2") + "_left";
+		keyRight 	= (isBoy ? "p1" : "p2") + "_right";
+		keyJump 	= (isBoy ? "p1" : "p2") + "_jump";
+		keyDown 	= (isBoy ? "p1" : "p2") + "_down";
+		keyPickup 	= (isBoy ? "p1" : "p2") + "_pickup";
+		keySwitch 	= (isBoy ? "p1" : "p2") + "_switch";
 	}
 	
 	@Override
@@ -102,6 +103,8 @@ public class PlayerLogic extends Launchable {
 		player = (Player) getParent();
 		body = player.body;
 		transform = player.transform;
+		
+		switchTurn = false;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -113,20 +116,22 @@ public class PlayerLogic extends Launchable {
 	}
 	
 	@Override
-	public void update(double delta) {		
+	public void update(double delta) {	
+		
 		// @Switcher
 		switchTimer -= delta;
-		if (Keyboard.pressed(keySwitch) && switchTimer < 0 && switchTurn == isBoy) {
+		if (InputManager.pressed(keySwitch) && switchTimer < 0 && switchTurn == isBoy) {
 			if (Hud.getEnergy() != 0) {
 				switchTurn = !switchTurn;
 				switchTimer = switchCooldown;
 				level.switchTime();
+				level.shakeCamera(0.05f, 0.03f);
 				Hud.changeEnergy(-switchCost);
 			}
 		}
 
 		// @Picking up / Throwing
-		if (Keyboard.pressed(keyPickup) && !holding) {
+		if (InputManager.pressed(keyPickup) && !holding && !thrown) {
 			Collision[] cs = player.pickupTrigger.getCollisions();
 			for (Collision c : cs) {
 				Launchable l = null;
@@ -146,10 +151,10 @@ public class PlayerLogic extends Launchable {
 					}
 				}
 			}
-		} else if (Keyboard.pressed(keyPickup)) {
+		} else if (InputManager.pressed(keyPickup)) {
 			Vector2f dir = new Vector2f(0, 0.75f * jumpVel);
 			
-			if (lastMoveRight) 
+			if (player.getDir() != 1) 
 				dir.x = -throwSpeed * 0.1f;
 			else
 				dir.x = throwSpeed * 0.1f;
@@ -170,8 +175,9 @@ public class PlayerLogic extends Launchable {
 		switch (state) {
 		case HELD:
 			// Jumping out
-			if (Keyboard.pressed(keyJump)) {
-				launch(new Vector2f(0, 1));
+			if (InputManager.pressed(keyJump)) {
+				((Player) holder).body.addForce(new Vector2f(0, -heldJump));
+				launch(new Vector2f(0, heldJump));
 			} else {
 				body.setVelocity(new Vector2f());
 				transform.position = holder.get(Transform.class).position.clone().add(relativePosition);
@@ -193,20 +199,16 @@ public class PlayerLogic extends Launchable {
 			Vector2f v = new Vector2f(0, (float) (gravity * delta * (player.grounded ? 0 : 1)));				
 			float acc = (player.grounded ? (onIce ? iceAcc : groundAcc) : airAcc);
 			
-			if (Keyboard.down(keyLeft) && (!thrown || !(body.getVelocity().x < -maxSpeed))) {
+			if (InputManager.down(keyLeft) && (!thrown || !(body.getVelocity().x < -maxSpeed))) {
 				v.x -= acc * delta;
 			}
 			
-			if (Keyboard.down(keyRight) && (!thrown || !(body.getVelocity().x > maxSpeed))) {
+			if (InputManager.down(keyRight) && (!thrown || !(body.getVelocity().x > maxSpeed))) {
 				v.x += acc * delta;
 			}
 		
-			if (Keyboard.down(keyDown)) {
+			if (InputManager.down(keyDown)) {
 				v.y -= fallAcc * delta;
-			}
-			
-			if (Math.abs(v.x) < 0.01f) {
-				lastMoveRight = v.x > 0;
 			}
 			
 			if(Math.abs(v.x) > 0) {
@@ -222,90 +224,91 @@ public class PlayerLogic extends Launchable {
 		
 			float friction = player.grounded ? (onIce ? iceFriction : groundFriction) : airFriction;
 			Vector2f bodyVelocity = body.getVelocity(); 
-			// Makesure we don't mess with the movement of the platform
+			// Make sure we don't mess with the movement of the platform
 			bodyVelocity.sub(platformVelocity);
 			platformVelocity.x = 0;
 			platformVelocity.y = 0;
 			
 			// Add in the velocity we normally have
-				v = Vector2f.add(
-						v, 
-						new Vector2f(bodyVelocity.x * friction, 
-							Math.min(bodyVelocity.y, 
-									bodyVelocity.y * (Keyboard.down(keyJump) || thrown ? 1 : jumpFriction))
-						), null);
+			v.add(new Vector2f(bodyVelocity.x * friction, 
+						Math.min(bodyVelocity.y, bodyVelocity.y * 
+						(InputManager.down(keyJump) || thrown ? 1 : jumpFriction))));
 
-				if (Math.abs(v.x) > maxSpeed && !thrown) {
-					v.x = Math.signum(v.x) * maxSpeed;
-				}
-				
-				float fall = maxFallSpeed;
-				if (Keyboard.down(keyDown)) {
-					fall += fallAcc;
-				}
-				
-				if (v.y < -fall) {
-					v.y = -fall;
-				}
-				
-				if (Keyboard.pressed(keyJump)) {
-					jumping = true;
-					bufferTime = 0;
-				}
-				
-				if (jumping) {
-					bufferTime += delta;
-					jumping = bufferTime < bufferMaxTime;
-				}
-				
-				if (jumping && player.grounded) {
-					jumping = false;
-					v.y = jumpVel;
-				} else {
-					if (player.grounded) {
-						for (Collision c : body.getCollisions()) {
-							// If we get hit by a rock
-							if (c.other.getTag().equals("rock") && c.other.getVelocity().lengthSquared() >= 0.1f) {
-								state = PlayerStates.HIT;
-								body.setTrigger(true);
-								
-								v.x = -Math.signum(c.distance.x);
-								if (v.x == 0) {
-									v.x = 1;
-								}
-
-								v.x *= 0.7f;
-								v.y = 1;
-								
-								hitTimer = hitTime;
-								body.setVelocity(v.scale(hitStrength));
-								return;
-							} else if (c.normal.dot(UP) > minGroundAngle) {
-								// @Moving-Platforms
-								if (c.other.getTag().equals("moving-platform")) {
-									platformVelocity.add(c.other.getVelocity());
-									transform.position.sub(c.normal.clone().scale(c.collisionDepth * c.other.getVelocity().dot(c.normal)));
-								} else if (!c.other.isTrigger()) {
-									Vector2f n = c.normal.clone();
-									v.add(n.scale(-0.9f * n.dot(v)));
-								}
-								
+			if (Math.abs(v.x) > maxSpeed && !thrown) {
+				v.x = Math.signum(v.x) * maxSpeed;
+			}
+			
+			float fall = maxFallSpeed;
+			if (InputManager.down(keyDown)) {
+				fall += fallAcc;
+			}
+			
+			if (v.y < -fall) {
+				v.y = -fall;
+			}
+			
+			if (InputManager.pressed(keyJump)) {
+				jumping = true;
+				bufferTime = 0;
+			}
+			
+			if (jumping) {
+				bufferTime += delta;
+				jumping = bufferTime < bufferMaxTime;
+			}
+			
+			if (jumping && player.grounded) {
+				jumping = false;
+				v.y = jumpVel;
+			} else {
+				if (player.grounded) {
+					for (Collision c : body.getCollisions()) {
+						// If we get hit by a rock
+						if (c.other.getTag().equals("rock") && c.other.getVelocity().lengthSquared() >= 0.1f) {
+							state = PlayerStates.HIT;
+							body.setTrigger(true);
+							
+							v.x = -Math.signum(c.distance.x);
+							if (v.x == 0) {
+								v.x = 1;
 							}
-						}
-						v.y = 0;
-						v.add(platformVelocity);
-					} else {
-						for (Collision c : body.getCollisions()) {
-							if (!c.other.isTrigger()) {
+
+							v.x *= 0.7f;
+							v.y = 1;
+							
+							hitTimer = hitTime;
+							body.setVelocity(v.scale(hitStrength));
+							return;
+						} else if (c.normal.dot(UP) > minGroundAngle) {
+							// @Moving-Platforms
+							if (c.other.getTag().equals("moving-platform")) {
+								platformVelocity.add(c.other.getVelocity());
+								transform.position.sub(c.normal.clone().scale(c.collisionDepth * c.other.getVelocity().dot(c.normal)));
+							} else if (!c.other.isTrigger()) {
 								Vector2f n = c.normal.clone();
-								// Magic number, IDK
-								v.add(n.scale(-0.25f * n.dot(v)));
+								v.add(n.scale(-0.9f * n.dot(v)));
 							}
+							
+						}
+					}
+					v.y = 0;
+					v.add(platformVelocity);
+				} else {
+					for (Collision c : body.getCollisions()) {
+						if (!c.other.isTrigger()) {
+							Vector2f n = c.normal.clone();
+							// Magic number, IDK
+							v.add(n.scale(-0.25f * n.dot(v)));
 						}
 					}
 				}
-				body.setVelocity(v);
-			break;
+			}
+			body.setVelocity(v);
+			// If we're holding someone, they should also face this direction
+			if (launchableIsPlayer()) {
+				((Player) launchable.getParent()).setDir(player.getDir());
+			}
+		break;
 		
 		case HIT:
 			tryThrow();
@@ -335,6 +338,15 @@ public class PlayerLogic extends Launchable {
 		default:
 		}
 	}
+
+	boolean trace = false;
+	
+	public void hit(float time, Vector2f direction) {
+		state = PlayerStates.HIT;
+		hitTimer = time;
+		body.setVelocity(direction);
+		trace = true;
+	}
 	
 	public void tryThrow() {
 		tryThrow(new Vector2f());
@@ -355,9 +367,10 @@ public class PlayerLogic extends Launchable {
 			if (c.other.isTrigger()) continue;
 			if (c.other.getTag().equals("moving-platform")) c.normal.negate();
 			player.grounded = c.normal.dot(UP) > minGroundAngle;
-			thrown = false;
-			if (player.grounded)
+			if (player.grounded) {
+				thrown = false;
 				break;
+			}
 		}
 	}
 
@@ -382,13 +395,16 @@ public class PlayerLogic extends Launchable {
 		holding = false;
 	}
 
+	
 	@Override
 	public boolean launch(Vector2f direction) {
-		if (holder == null) return false;
-		PlayerLogic c = holder.get(PlayerLogic.class);
-		
-		if (c != null)
-			c.drop();
+		PlayerLogic c = null;
+		if (holder != null) {
+			c = holder.get(PlayerLogic.class);
+
+			if (c != null)
+				c.drop();
+		}
 		
 		this.body.setVelocity(direction);
 		

@@ -18,6 +18,7 @@ public class Main {
 		gp.resizable = true;
 		gp.title = "Time Game";
 		gp.vSync = true;
+		gp.inputMapPath = "res/input.map";
 		
 		System.out.println("Starting game...");
 		
