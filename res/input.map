@@ -34,6 +34,6 @@ p2_switch J 1 RIGHT_BUMPER
 p2_switch K ,
 
 restart K R
+restart J 0 Y
 restart J 1 Y
-restart J 2 Y
 

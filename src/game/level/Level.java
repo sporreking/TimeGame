@@ -152,6 +152,11 @@ public class Level extends Node {
 		
 		spawnPlayers();
 		
+		// We should let the physics simulate first, to make sure we place the players in a good positon. so the camera doesn't shake.
+		
+		worlds[0].update(0.5f);
+		worlds[1].update(0.5f);
+		
 		initCamera();
 	}
 	
