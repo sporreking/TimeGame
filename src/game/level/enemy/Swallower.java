@@ -42,7 +42,7 @@ public class Swallower extends Component {
 	private Random random;
 	
 	private int dir = -1;
-	private float pushWeight = 0.75f;
+	private float pushWeight = 0.9f;
 	
 	public Swallower() {
 		random = new Random();
@@ -103,12 +103,12 @@ public class Swallower extends Component {
 		} else if(swallowed == e.l.player1) {
 			if(e.get(Body.class).isCollidingWithTags("p2")) {
 				pop();
-				push(e.l.player2);
+				push(e.l.player2, e.l.player1);
 			}
 		} else if(swallowed == e.l.player2) {
 			if(e.get(Body.class).isCollidingWithTags("p1")) {
 				pop();
-				push(e.l.player1);
+				push(e.l.player1, e.l.player2);
 			}
 		}
 		
@@ -119,19 +119,18 @@ public class Swallower extends Component {
 	}
 
 	// Send them flying
-	private void push(Player p) {
+	private void push(Player poper, Player swallowed) {
 		
 		e.l.shakeCamera(0.1f, 0.03f);
 		
-		// TODO: Don't know why this doesn't work
-		Vector2f distance = p.transform.position.clone().sub(e.transform.position.clone());
+		Vector2f distance = poper.transform.position.clone().sub(e.transform.position.clone());
 		
  		distance.normalise();
  		distance.y += 0.25f;
 		distance.scale(pushWeight);
-		System.out.println(distance);
 		
-		p.playerLogic.hit(0.25f, distance);
+		poper.playerLogic.hit(0.25f, distance);
+		swallowed.playerLogic.hit(0.25f, distance.negate());
 	}
 	
 	private void flip() {
