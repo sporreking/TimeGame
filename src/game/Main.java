@@ -19,6 +19,7 @@ public class Main {
 		gp.title = "Time Game";
 		gp.vSync = true;
 		gp.inputMapPath = "res/input.map";
+		gp.icon = "res/texture/logo.png";
 		
 		System.out.println("Starting game...");
 		

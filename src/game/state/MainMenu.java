@@ -1,18 +1,20 @@
 package game.state;
 
 import java.awt.Font;
-
-import com.sun.xml.internal.bind.v2.model.util.ArrayInfoUtil;
+import java.util.Random;
 
 import game.TG;
+import sk.audio.AudioManager;
 import sk.entity.Entity;
 import sk.game.Game;
+import sk.game.Time;
 import sk.game.Window;
 import sk.gamestate.GameState;
 import sk.gamestate.GameStateManager;
 import sk.gfx.Texture;
 import sk.gfx.gui.GUIButton;
 import sk.gfx.gui.GUIElement;
+import sk.gfx.gui.GUIFader;
 import sk.gfx.gui.GUIText;
 import sk.gfx.gui.GUITextPosition;
 import sk.sst.SST;
@@ -28,12 +30,105 @@ public class MainMenu implements GameState {
 		CREDITS,
 	}
 	
+	static class KeyRepeateTimer {
+		// The input we want to check for
+		String key;
+		
+		final float START = 0.75f;
+		final float END = 0.05f;
+		final float TIME_TO_MAX = 1.0f;
+		
+		float heldDownFor = 0;
+		float timer = 0;
+		
+		public KeyRepeateTimer(String key) {
+			this.key = key;
+		}
+		
+		public boolean step(double delta) {
+			if (InputManager.down(key)) {
+				if (heldDownFor == 0) {
+					heldDownFor += delta;
+					return true;
+				} else {
+					heldDownFor += delta;
+					timer += delta;
+					float lerp = (float) Math.min(Math.pow((heldDownFor / TIME_TO_MAX), 0.5), 1);
+					float limit = (1 - lerp) * START + lerp * END;
+					
+					if (limit < timer) {
+						timer -= limit;
+						return true;
+					}
+				}
+			} else {
+				heldDownFor = 0;
+				timer = 0;
+			}
+			
+			return false;
+		}
+	}
+	
 	private Entity buttons[];
 	private GUIElement logo;
+	private GUIFader globalVolume;
+	private GUIFader tempVolume;
+	
+	private GUIElement credits;
+	
+	private KeyRepeateTimer up, down, left, right;
 	
 	private MenuState state;
 	
 	private int highlighted = -1;
+
+	public static final String GENERATE_CREDITS() {
+		String text =
+			"A game by: \n\n"
+			+ "Programming: \n"
+			+ "   %s, %s,\n"
+			+ "   %s\n"
+			+ "\nGraphics: \n"
+			+ "   %s\n"
+			+ "\nSound: \n"
+			+ "    %s, %s,\n"
+			+ "    %s\n"
+			+ "\n\n(Copyread, no rights reserved)";
+		
+		String ed = "Edvard Thörnros";
+		String al = "Alfred Sporre";
+		String killMe = "Gustav \"Gösta\" Andersson";
+		String es = "Eric Sjöö";
+		
+		String[] programmers = shuffle(ed, al, es);
+		
+		String[] graphics = shuffle(killMe);
+		
+		String[] sound = shuffle(killMe, al, es);
+		
+		return String.format(text, programmers[0], programmers[1], programmers[2], graphics[0], sound[0], sound[1], sound[2]);
+	}
+	
+	private static String[] shuffle(String... strings) {
+		String[] shuffled = strings.clone();
+		
+		if (shuffled.length < 2) {
+			return shuffled;
+		}
+		
+		Random random = new Random((int) (Time.getTime() * 100));
+		for (int i = 0; i < shuffled.length; i++) {
+			int index = random.nextInt(shuffled.length - 1);
+			String temp = shuffled[index];
+			shuffled[index] = shuffled[i];
+			shuffled[i] = temp;
+		}
+		
+		return shuffled;
+	}
+	
+	public static final float MAX_GAIN = 2;
 
 	public static final int BUTTON_SPACING = 60;
 
@@ -85,7 +180,6 @@ public class MainMenu implements GameState {
 	}
 	
 	public void enterMain() {
-		highlighted = -1;
 		state = MenuState.MAIN_MENU;
 		
 		buttons = generateButtons(0, 0, 0, -50, WIDTH, "Start", "Credits", "Settings", "Exit");
@@ -105,22 +199,33 @@ public class MainMenu implements GameState {
 		((GUIButton) buttons[3].get(GUIButton.class)).setOnClick((sst) -> {
 			Game.stop();
 		});
+		
+		if (highlighted != -1) {
+			highlighted = 0;
+			hover(highlighted);
+		}
 	}
 	
 	public void enterCredits() {
-		highlighted = -1;
 		state = MenuState.CREDITS;
 		
+		
+		credits.getText().setText(GENERATE_CREDITS());
+		
 		buttons = new Entity[1];
-		buttons[0] = generateButton(0, -1, 0, - (2 * BUTTON_SPACING + HEIGHT / 2), WIDTH, "Back");
+		buttons[0] = generateButton(0, -1, 0, BUTTON_SPACING, WIDTH, "Back");
 		
 		buttons[0].get(GUIButton.class).setOnClick((sst) -> {
 			enterMain();
 		});
+		
+		if (highlighted != -1) {
+			highlighted = 0;
+			hover(highlighted);
+		}
 	}
 	
 	public void enterSettings() {
-		highlighted = -1;
 		state = MenuState.SETTINGS;
 		
 		buttons = generateButtons(-1, 0, WIDTH, (int) (1.5 * (BUTTON_SPACING)), WIDTH * 2, "Fullscreen", "SFX Volume", "Music Volume", "Back");
@@ -201,26 +306,51 @@ public class MainMenu implements GameState {
 		});
 		
 		buttons[1].get(GUIButton.class).setOnClick((sst) -> {
-			System.out.println("WOOOO SOUND EFFECTS!");
 		});
 		
 		buttons[2].get(GUIButton.class).setOnClick((sst) -> {
-			System.out.println("WOOOO MUSIC!");
 		});
 		
 		buttons[3].get(GUIButton.class).setOnClick((sst) -> {
 			enterMain();
 		});
+		
+		if (highlighted != -1) {
+			highlighted = 0;
+			hover(highlighted);
+		}
 	}
 
 	@Override
 	public void init() {
 		// Only load the logo once
-		LOGO = new Texture("res/texture/temp.png");
+		LOGO = new Texture(Game.properties.icon);
 		logo = new GUIElement(0, 1, 0, -150, 300, 300);
 		logo.setText(new GUIText("", 0, 0, MENU_FONT));
 		logo.setTexture(LOGO);
 		
+		int CREDITS_HEIGHT = 500;
+		int CREDITS_WIDTH = 600;
+		credits = new GUIElement(0, 1, 0, -CREDITS_HEIGHT / 2, CREDITS_WIDTH, CREDITS_HEIGHT);
+		credits.setHue(new Vector4f(0, 0, 0, 0));
+		credits.setText(new GUIText(GENERATE_CREDITS(), 
+				CREDITS_WIDTH, CREDITS_HEIGHT, MENU_FONT, new Vector4f(1, 1, 1, 1), GUITextPosition.TOP_LEFT, new Vector2f(10, 0)));
+		
+		Texture mask = new Texture("res/texture/mask.png");
+		Texture on   = new Texture("res/texture/on.png");
+		Texture off  = new Texture("res/texture/off.png");
+		
+		globalVolume = new GUIFader(-1, 0, (int) (2.5 * WIDTH) + 10, (int) (.5 * (BUTTON_SPACING)), WIDTH, HEIGHT,
+				mask, on, off);
+		
+		
+		tempVolume = new GUIFader(-1, 0, (int) (2.5 * WIDTH) + 10, (int) -(.5 * (BUTTON_SPACING)), WIDTH, HEIGHT,
+				mask, on, off);
+		
+		up = new KeyRepeateTimer("up");
+		down = new KeyRepeateTimer("down");
+		left = new KeyRepeateTimer("left");
+		right = new KeyRepeateTimer("right");
 		enterMain();
 	}
 
@@ -240,9 +370,7 @@ public class MainMenu implements GameState {
 			click(highlighted);
 		}
 		
-		if (InputManager.pressed("down")) {
-			unhover();
-			
+		if (down.step(delta)) {
 			do {
 				highlighted++;
 				if (highlighted > buttons.length) {
@@ -254,9 +382,7 @@ public class MainMenu implements GameState {
 			hover(highlighted);
 		}
 		
-		if (InputManager.pressed("up")) {
-			unhover();
-
+		if (up.step(delta)) {
 			if (highlighted == -1) {
 				highlighted = 1;
 			}
@@ -271,6 +397,72 @@ public class MainMenu implements GameState {
 			
 			hover(highlighted);
 		}
+		
+		if (state == MenuState.SETTINGS) {
+			if (left.step(delta)) {
+				// @Hardcode: Should really make this more general...
+				// This assumes 4 elements on the left hand side
+				if (highlighted == 1 || highlighted == 2) {
+					// DUDE, WE'RE ON A FKING SLIDER!
+					if (highlighted == 1) {
+						float newGain = AudioManager.getGlobalLoopGain() - 0.05f;
+						newGain = Math.max(0, Math.min(MAX_GAIN, newGain));
+						AudioManager.setGlobalLoopGain(newGain);
+					} else {
+						float newGain = AudioManager.getGlobalTempGain() - 0.05f;
+						newGain = Math.max(0, Math.min(MAX_GAIN, newGain));
+						AudioManager.setGlobalTempGain(newGain);
+					}
+				} else {
+					if (highlighted < 2) {
+						highlighted = 5;
+					} else if (highlighted == 3) {
+						highlighted = 7;
+					} else if (highlighted > 6) {
+						highlighted = 3;
+					} else {
+						highlighted = 0;
+					}
+					
+					hover(highlighted);
+				}
+			}
+		}
+		
+		if (state == MenuState.SETTINGS) {
+			if (right.step(delta)) {
+				// @Hardcode: Should really make this more general...
+				// This assumes 4 elements on the left hand side
+				if (highlighted == 1 || highlighted == 2) {
+					if (highlighted == 1) {
+						float newGain = AudioManager.getGlobalLoopGain() + 0.05f;
+						newGain = Math.max(0, Math.min(MAX_GAIN, newGain));
+						AudioManager.setGlobalLoopGain(newGain);
+					} else {
+						float newGain = AudioManager.getGlobalTempGain() + 0.05f;
+						newGain = Math.max(0, Math.min(MAX_GAIN, newGain));
+						AudioManager.setGlobalTempGain(newGain);
+					}
+				} else {
+					
+					if (highlighted < 2) {
+						highlighted = 5;
+					} else if (highlighted == 3) {
+						highlighted = 7;
+					} else if (highlighted >= 6) {
+						highlighted = 3;
+					} else {
+						highlighted = 0;
+					}
+					
+					hover(highlighted);
+				}
+			}
+		}
+		
+		// @SaveTheFrames: This doesn't need to go here... but it is here now.
+		globalVolume.setThreshold(AudioManager.getGlobalLoopGain() / MAX_GAIN);
+		tempVolume.setThreshold(AudioManager.getGlobalTempGain() / MAX_GAIN);
 	}
 	
 	private void unhover() {
@@ -298,8 +490,11 @@ public class MainMenu implements GameState {
 			logo.draw();
 			break;
 		case CREDITS:
+			credits.draw();
 			break;
 		case SETTINGS:
+			globalVolume.draw();
+			tempVolume.draw();
 			break;
 		}
 
