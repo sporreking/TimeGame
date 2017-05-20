@@ -12,8 +12,10 @@ p1_right K D
 p1_down K S
 p1_down J 0 LEFTSTICK_DOWN
 p1_down J 0 DPAD_DOWN
-p1_pickup J 0 LEFT_BUMPER
+p1_pickup J 0 X
 p1_pickup K E
+p1_pickup J 0 LEFT_BUMPER
+p1_switch J 0 B
 p1_switch J 0 RIGHT_BUMPER
 p1_switch K Q
 
@@ -31,8 +33,10 @@ p2_right K RIGHT
 p1_down K DOWN
 p2_down J 1 LEFTSTICK_DOWN
 p2_down J 1 DPAD_DOWN
+p2_pickup J 1 X
 p2_pickup J 1 LEFT_BUMPER
 p2_pickup K .
+p2_switch J 1 B
 p2_switch J 1 RIGHT_BUMPER
 p2_switch K ,
 
