@@ -2,8 +2,11 @@ package game.level.resources;
 
 import java.util.ArrayList;
 
+import game.AudioLib;
+import game.TexLib;
 import game.level.Chunk;
 import game.level.Level;
+import sk.audio.AudioManager;
 import sk.entity.Entity;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
@@ -27,7 +30,7 @@ public class PressurePlate extends Entity{
 	
 	ArrayList<Connectable> connections = new ArrayList<Connectable>();
 
-	float size = 5;
+	float size = 8;
 	
 	public PressurePlate(Level level, int layer, float x, float y) {
 		this.level = level;
@@ -41,9 +44,9 @@ public class PressurePlate extends Entity{
 		transform.scale.y = size * Chunk.PIXEL_SCALE;
 		
 		renderer = new Renderer(Mesh.QUAD);
-		renderer.setTexture(new Texture("res/texture/temp.png"));
+		renderer.setTexture(TexLib.T_PRESSURE_OFF);
 
-		body = new TriggerBody("switch", Shape.QUAD);
+		body = new TriggerBody("switch", Shape.GEN_QUAD(.25f));
 		level.worlds[layer].addBody(body);
 		
 		add(transform);
@@ -75,12 +78,16 @@ public class PressurePlate extends Entity{
 		for (Connectable c : connections) {
 			c.released();
 		}
+		renderer.setTexture(TexLib.T_PRESSURE_OFF);
+		AudioManager.play(1.5f, 1, transform.position.x, transform.position.y, 0, true, AudioLib.S_BUTTON);
 	}
 	
 	public void press() {
 		for (Connectable c : connections) {
 			c.pressed();
 		}
+		renderer.setTexture(TexLib.T_PRESSURE_ON);
+		AudioManager.play(1.5f, 2, transform.position.x, transform.position.y, 0, true, AudioLib.S_BUTTON);
 	}
 	
 	@Override

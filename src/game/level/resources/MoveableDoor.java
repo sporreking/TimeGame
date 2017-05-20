@@ -1,5 +1,6 @@
 package game.level.resources;
 
+import game.TexLib;
 import game.level.Chunk;
 import game.level.Level;
 import sk.entity.Entity;
@@ -21,7 +22,7 @@ public class MoveableDoor extends Entity {
 	Level level;
 	int layer;
 	
-	float width = 10;
+	float width = 12.5f;
 	float height = 20;
 	
 	Connectable connectable = new PushDownConnectable();
@@ -56,9 +57,9 @@ public class MoveableDoor extends Entity {
 		movable.setSpeed(0.2f);
 		
 		renderer = new Renderer(Mesh.QUAD);
-		renderer.setTexture(new Texture("res/texture/temp.png"));
+		renderer.setTexture(TexLib.T_DOOR_UNLOCKED);
 		
-		body = new Body(Shape.QUAD);
+		body = new Body(Shape.GEN_QUAD(.3f));
 		body.setDynamic(false);
 		body.setTag("moving-platform");
 		level.worlds[layer].addBody(body);

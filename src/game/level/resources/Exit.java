@@ -69,7 +69,7 @@ public class Exit extends Entity {
 		}
 		
 		if (p1 && p2) {
-			level.exit();
+			level.exit(transform.position);
 		}
 
 		super.update(delta);

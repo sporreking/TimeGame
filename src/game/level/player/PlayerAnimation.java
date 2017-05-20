@@ -77,6 +77,8 @@ public class PlayerAnimation extends Component {
 	public static Animation dude2_jump;
 	public static Animation dude1_death;
 	public static Animation dude2_death;
+	public static Animation dude1_win;
+	public static Animation dude2_win;
 	
 	static {
 		dude1_idle = new Animation(new SpriteSheet("res/texture/character/dude1_idle.png",
@@ -102,5 +104,11 @@ public class PlayerAnimation extends Component {
 		
 		dude2_death = new Animation(new SpriteSheet("res/texture/character/dude2_death.png",
 				5, 1), 32, 0, 1, 2, 3, 4);
+		
+		dude1_win = new Animation(new SpriteSheet("res/texture/character/dude1_victory.png",
+				16, 1), 12, 0, 1, 2, 3, 4, 5, 6, 7,  8, 9, 10, 11, 12, 13, 14, 15);
+		
+		dude2_win = new Animation(new SpriteSheet("res/texture/character/dude2_victory.png",
+				16, 1), 16, 0, 1, 2, 3, 4, 5, 6, 7,  8, 9, 10, 11, 12, 13, 14, 15);
 	}
 }

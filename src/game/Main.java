@@ -23,7 +23,8 @@ public class Main {
 		
 		AudioManager.start();
 		AudioManager.setGlobalLoopGain(1f);
-		AudioManager.setGlobalTempGain(.005f);
+		AudioManager.setGlobalTempGain(.25f);
+		AudioManager.setRandomGainRange(0);
 		
 		Game.start(gp);
 		

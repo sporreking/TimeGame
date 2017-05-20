@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+import org.lwjgl.glfw.GLFW;
+
+import game.AudioLib;
 import game.TG;
 import game.level.enemy.Enemy;
 import game.level.player.PlayerLogic;
@@ -19,6 +22,7 @@ import game.level.resources.PressurePlate;
 import game.level.resources.Rock;
 import game.parallax.ParallaxRender;
 import game.state.Playing;
+import sk.audio.Audio;
 import sk.audio.AudioManager;
 import sk.entity.Container;
 import sk.entity.Node;
@@ -34,6 +38,7 @@ import sk.gfx.Vertex2D;
 import sk.physics.Body;
 import sk.physics.Shape;
 import sk.physics.World;
+import sk.util.io.Keyboard;
 import sk.util.vector.Vector2f;
 import sk.util.vector.Vector3f;
 import sk.util.vector.Vector4f;
@@ -67,8 +72,13 @@ public class Level extends Node {
 	private ParallaxRender[] pr_2;
 	private ParallaxRender[] pr_n1;
 	
+	private float cameraShakeTime;
+	private float cameraAmplitude;
+	
 	private boolean promptRestart = false;
 	private ArrayList<SpawnPoint> spawnPoints;
+	
+	private boolean completed = false;
 	
 	public Level(Player player1, Player player2, LevelData... levelData) {
 		this.player1 = player1;
@@ -150,6 +160,8 @@ public class Level extends Node {
 		spawnPlayers();
 		
 		initCamera();
+		
+		AudioLib.playLevelMusic(currentSheet);
 	}
 	
 	private void spawnPlayers() {
@@ -323,10 +335,10 @@ public class Level extends Node {
 		
 		for(int i = 0; i < pr_n1.length; i++) {
 			pr_n1[i] = new ParallaxRender(new Mesh(new Vertex2D[] {
-					new Vertex2D(-1f, .5f, 0, 0),
-					new Vertex2D(1f, .5f, 2, 0),
-					new Vertex2D(1f, -.5f, 2, 1),
-					new Vertex2D(-1f, -.5f, 0, 1)
+					new Vertex2D(-2f, .0f, 0, 0),
+					new Vertex2D(2f, .0f, 2, 0),
+					new Vertex2D(2f, -.5f, 2, 1),
+					new Vertex2D(-2f, -.5f, 0, 1)
 			}, 0, 1, 3, 3, 1, 2), .1f, true);
 			
 			pr_n1[i].transform.scale.x = 1;
@@ -345,6 +357,14 @@ public class Level extends Node {
 		
 		player1.switchTime();
 		player2.switchTime();
+		
+		AudioLib.playLevelMusic(currentSheet);
+		AudioManager.play(1, 1, false, AudioLib.S_TIME_SWITCH);
+	}
+	
+	public void shakeCamera(float time, float amplitude) {
+		cameraShakeTime = time;
+		cameraAmplitude = amplitude;
 	}
 	
 	private void checkBounds() {
@@ -388,6 +408,13 @@ public class Level extends Node {
 				Math.abs((t1.position.y - t2.position.y) * Window.getAspectRatio())) / 2);
 		Vector2f targetPosition = t1.position.clone().add(t2.position).scale(0.5f);
 		
+		// Make sure the target won't show chunks that are outside.
+		if (targetPosition.y + targetScale > 0.5f) {
+			targetPosition.y = 0.5f - targetScale;
+		} else if (targetPosition.y - targetScale < 0.5f - data[currentSheet].chunksY) {
+			targetPosition.y = 0.5f - data[currentSheet].chunksY + targetScale;
+		}
+		
 		Camera.DEFAULT.scale.x = targetScale;
 		Camera.DEFAULT.scale.y = targetScale;
 		Camera.DEFAULT.position = targetPosition;
@@ -413,22 +440,63 @@ public class Level extends Node {
 		float targetScale = Math.max(.4f, Math.max(Math.abs(t1.position.x - t2.position.x) * 1.1f + 0.5f,
 				Math.abs((t1.position.y - t2.position.y) * Window.getAspectRatio())) / 2);
 		
+		
+		// We can't zoom out more! NOOOO!
+		if (targetScale * 2 > data[currentSheet].chunksY) {
+			targetScale = data[currentSheet].chunksY / 2.0f;
+		} else {
+			// Use the default calculation
+		}
+		
 		float scale = (float) (Camera.DEFAULT.scale.x - (Camera.DEFAULT.scale.x - targetScale) * CameraScaleSpeed * Time.getDelta());
 		
+		// Take what is closer,
+		Vector2f targetPosition = t1.position.clone().add(t2.position).scale(0.5f);
+
 		if (Math.abs(scale - targetScale) < 0.0001f) {
 			scale = targetScale;
 		}
 		Camera.DEFAULT.scale.x = scale;
 		Camera.DEFAULT.scale.y = scale;
 
-		Vector2f targetPosition = t1.position.clone().add(t2.position).scale(0.5f);
+		// Make sure the target won't show chunks that are outside.
+		if (targetPosition.y + scale > 0.5f) {
+			targetPosition.y = 0.5f - scale;
+		} else if (targetPosition.y - scale < 0.5f - data[currentSheet].chunksY) {
+			targetPosition.y = 0.5f - data[currentSheet].chunksY + scale;
+		}
 		
 		Camera.DEFAULT.position.add(
 				targetPosition.sub(Camera.DEFAULT.position)
 				.scale((float) (CameraMoveSpeed * Time.getDelta())));
 		
+		// Make sure the cam doesn't show anything, even if we change the zoom quickly
+		if (Camera.DEFAULT.position.y + scale > 0.5f) {
+			Camera.DEFAULT.position.y = 0.5f - scale;
+		} else if (Camera.DEFAULT.position.y - scale < -0.5f - data[currentSheet].chunksY) {
+			Camera.DEFAULT.position.y = 0.5f - data[currentSheet].chunksY + scale;
+		}
+		
+		// Shake the camera if it is needed
+		if (cameraShakeTime > 0) {
+			float delta = (float) Time.getDelta();
+			cameraShakeTime -= delta;
+			
+			/*
+			 * If you are inspecting this code, you might be thinking:
+			 * This creates tendancies towards the diagonals, but this
+			 * feels better, I don't know why, but it feels more random
+			 * whene the diagonals are over represented.
+			 */
+			
+			float x = (float) (Math.random() - 0.5f) * cameraAmplitude;
+			float y = (float) (Math.random() - 0.5f) * cameraAmplitude;
+			Vector2f offset = new Vector2f(x, y);
+			Camera.DEFAULT.position.add(offset);
+		}
+		
 		// Update the position of the listener
-		AudioManager.setListenerPosition(new Vector3f(Camera.DEFAULT.position.x, Camera.DEFAULT.position.y, 0));
+		AudioManager.setListenerPosition(new Vector3f(Camera.DEFAULT.position.x, Camera.DEFAULT.position.y, -1f));
 	}
 	
 	@Override
@@ -441,7 +509,7 @@ public class Level extends Node {
 		checkBounds();
 		
 		player1.update(delta);
-		player2.update(delta);		
+		player2.update(delta);
 		
 		enemies.update(delta);
 		entities.update(delta);
@@ -449,6 +517,10 @@ public class Level extends Node {
 		hud.update(delta);
 		
 		checkDeaths();
+		
+		if(completed && Keyboard.pressed(GLFW.GLFW_KEY_SPACE)) {
+			TG.GS_PLAYING.nextLevel();
+		}
 	}
 	
 	private void checkDeaths() {
@@ -534,6 +606,10 @@ public class Level extends Node {
 		pr_n1[currentSheet].draw();
 		
 		hud.draw();
+		
+		if(completed) {
+			
+		}
 	}
 	
 	@Override
@@ -552,8 +628,13 @@ public class Level extends Node {
 		}
 	}
 
-	public void exit() {
-		TG.GS_PLAYING.nextLevel();
+	public void exit(Vector2f pos) {
+		player1.win();
+		player2.win();
+		player1.get(Transform.class).position.x = pos.x - Player.SCALE * Player.WIDTH / 2;
+		player2.get(Transform.class).position.x = pos.x + Player.SCALE * Player.WIDTH / 2;
+		completed = true;
+//		TG.GS_PLAYING.nextLevel();
 	}
 
 	public boolean isPromptingRestart() {

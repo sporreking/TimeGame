@@ -7,6 +7,7 @@ import game.level.player.Player;
 import sk.audio.AudioManager;
 import sk.entity.Component;
 import sk.entity.Entity;
+import sk.game.Time;
 import sk.gfx.Animation;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
@@ -20,8 +21,8 @@ import sk.util.vector.Vector2f;
 public class Swallower extends Component {
 	
 	public static final double TIMER_START = 2.0;
-	private static final float SIZE = .1f;
-	private static final float SIZE_BIG = .11f;
+	private static final float SIZE = .12f;
+	private static final float SIZE_BIG = .14f;
 	
 	private Player swallowed = null;
 	
@@ -41,6 +42,7 @@ public class Swallower extends Component {
 	private Random random;
 	
 	private int dir = -1;
+	private float pushWeight = 0.75f;
 	
 	public Swallower() {
 		random = new Random();
@@ -53,12 +55,9 @@ public class Swallower extends Component {
 		e.transform.scale.x = SIZE;
 		e.transform.scale.y = SIZE;
 		
-		Body body = new Body(new Shape(new Vector2f[]{
-				new Vector2f(-.5f, .5f),
-				new Vector2f(.5f, .5f),
-				new Vector2f(.5f, -.5f),
-				new Vector2f(-.5f, -.5f)
-		})).setTrigger(true).setDynamic(false).setLayer((short) 0b0000000000000011);
+		Body body = new Body(Shape.GEN_QUAD(0.25f))
+			.setTrigger(true).setDynamic(false)
+			.setLayer((short) (e.l.P1_LAYER | e.l.P2_LAYER));
 		
 		e.add(body);
 		
@@ -104,10 +103,12 @@ public class Swallower extends Component {
 		} else if(swallowed == e.l.player1) {
 			if(e.get(Body.class).isCollidingWithTags("p2")) {
 				pop();
+				push(e.l.player2);
 			}
 		} else if(swallowed == e.l.player2) {
 			if(e.get(Body.class).isCollidingWithTags("p1")) {
 				pop();
+				push(e.l.player1);
 			}
 		}
 		
@@ -115,6 +116,22 @@ public class Swallower extends Component {
 		
 		if(timer <= 0)
 			devour();
+	}
+
+	// Send them flying
+	private void push(Player p) {
+		
+		e.l.shakeCamera(0.1f, 0.03f);
+		
+		// TODO: Don't know why this doesn't work
+		Vector2f distance = p.transform.position.clone().sub(e.transform.position.clone());
+		
+ 		distance.normalise();
+ 		distance.y += 0.25f;
+		distance.scale(pushWeight);
+		System.out.println(distance);
+		
+		p.playerLogic.hit(0.25f, distance);
 	}
 	
 	private void flip() {
@@ -152,7 +169,8 @@ public class Swallower extends Component {
 		swallowed = null;
 		shouldDie = true;
 		e.l.worlds[e.w].removeBody(e.get(Body.class));
-		AudioManager.play(1, 1, 0, 0, 0, false, AudioLib.S_FROG_DEATH);
+		AudioManager.play(1, 1, e.transform.position.x, e.transform.position.y, 0, true, AudioLib.S_FROG_DEATH);
+		AudioManager.play(1, 1, e.transform.position.x, e.transform.position.y, 0, true, AudioLib.S_POP);
 	}
 	
 	private void swallow(Player p) {

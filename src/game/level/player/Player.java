@@ -1,8 +1,11 @@
 package game.level.player;
 
+import game.AudioLib;
 import game.TG;
 import game.level.Chunk;
+import game.level.Level;
 import game.level.resources.Launchable;
+import sk.audio.AudioManager;
 import sk.debug.Debug;
 import sk.entity.Entity;
 import sk.gfx.Animation;
@@ -21,14 +24,15 @@ public class Player extends Entity {
 	static float TIME_STEP = 1 / 60.0f;
 	float timer = 0;
 	
-	int height = 12;
-	int width = 8;
+	public static final int HEIGHT = 12;
+	public static final int WIDTH = 8;
 
-	final float SCALE = 1f / Chunk.SIZE;
+	public static final float SCALE = 1f / Chunk.SIZE;
 
 	boolean isBoy;
 	public boolean alive = true;
 	public boolean shouldDie = false;
+	public boolean win = false;
 	
 	public Transform transform;
 	public Body body;
@@ -47,8 +51,8 @@ public class Player extends Entity {
 		super();
 		this.isBoy = isBoy;
 		transform = new Transform();
-		transform.scale.x = width * SCALE; 
-		transform.scale.y = height * SCALE;
+		transform.scale.x = WIDTH * SCALE; 
+		transform.scale.y = HEIGHT * SCALE;
 		body = new Body(1, 0, 0, new Shape(new Vector2f[] {
 				new Vector2f(-0.5f,  0.5f),
 				new Vector2f( 0.5f,  0.5f),
@@ -91,6 +95,8 @@ public class Player extends Entity {
 		
 		remove(Animation.class);
 		ah.animationToAdd = isBoy ? PlayerAnimation.dude1_death : PlayerAnimation.dude2_death;
+		
+		AudioManager.play(1, 1, transform.position.x, transform.position.y, 0, true, AudioLib.S_POP);
 	}
 	
 	public boolean isAlive() {
@@ -99,35 +105,37 @@ public class Player extends Entity {
 	
 	@Override
 	public void update(double delta) {
-		if (!enabled) {
-			return;
-		}
-
-		if (!alive) {
-			return;
-		}
-		
-		if(shouldDie) {
-			
-			if((isBoy ? PlayerAnimation.dude1_death :
-				PlayerAnimation.dude2_death).getCurrentFrame() == 4) {
-				alive = false;
+		if(!win) {
+			if (!enabled) {
+				return;
 			}
-		}
-
-		if (!playerLogic.isHeld() && !body.isTrigger()) {
-			for (Collision c : body.getCollisions()) {
-				if (c.other.isTrigger()) continue;
-				if (c.collisionDepth > 1f / 128 * 5) {
-					kill();
-					return;
+	
+			if (!alive) {
+				return;
+			}
+			
+			if(shouldDie) {
+				
+				if((isBoy ? PlayerAnimation.dude1_death :
+					PlayerAnimation.dude2_death).getCurrentFrame() == 4) {
+					alive = false;
 				}
 			}
-		}
-		
-		if (body.isCollidingWithTags("death")) {
-			kill();
-			return;
+			
+			if (!playerLogic.isHeld() && !body.isTrigger()) {
+				for (Collision c : body.getCollisions()) {
+					if (c.other.isTrigger()) continue;
+					if (c.collisionDepth > 1f / 128 * 5) {
+						kill();
+						return;
+					}
+				}
+			}
+			
+			if (body.isCollidingWithTags("death")) {
+				kill();
+				return;
+			}
 		}
 		
 		timer += delta;
@@ -175,5 +183,17 @@ public class Player extends Entity {
 	
 	public int getDir() {
 		return dir;
+	}
+
+	public void setDir(int d) {
+		dir = d;
+	}
+	
+	public void win() {
+		win = true;
+		Level l = TG.GS_PLAYING.getCurrentLevel();
+		l.worlds[l.currentSheet].removeBody(body);
+		remove(Animation.class);
+		ah.animationToAdd = isBoy ? PlayerAnimation.dude1_win : PlayerAnimation.dude2_win;
 	}
 }

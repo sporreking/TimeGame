@@ -73,7 +73,6 @@ public class ChapterMenu implements GameState {
 		b_next.setText(new GUIText(">", SIZE, SIZE, Font.getFont(Font.MONOSPACED)));
 		next = new Entity().add(b_next);
 		b_next.setOnClick((sst) -> page(1));
-		
 	}
 	
 	private void page(int inc) {

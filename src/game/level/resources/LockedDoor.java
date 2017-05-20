@@ -1,5 +1,6 @@
 package game.level.resources;
 
+import game.TexLib;
 import game.level.Chunk;
 import game.level.Level;
 import sk.entity.Entity;
@@ -42,7 +43,7 @@ public class LockedDoor extends Entity{
 		body.setTag("locked");
 
 		renderer = new Renderer(Mesh.QUAD);
-		renderer.setTexture(T_DOOR_LOCKED);
+		renderer.setTexture(TexLib.T_DOOR_LOCKED);
 
 		add(transform);
 		add(body);
@@ -71,6 +72,4 @@ public class LockedDoor extends Entity{
 
 		super.draw();
 	}
-	
-	public static final Texture T_DOOR_LOCKED = new Texture("res/texture/entity/door_locked.png");
 }

@@ -29,7 +29,7 @@ public class MainMenu implements GameState {
 			
 			num[x].get(SST.class).store("index", x);
 			
-			
+			/*
 			num[x].get(GUIButton.class).setOnHover((sst) -> {
 				num[(int) sst.get("index")].get(GUIButton.class).setHue(COLOR_ON);
 					 
@@ -39,6 +39,7 @@ public class MainMenu implements GameState {
 				num[(int) sst.get("index")].get(GUIButton.class).setHue(COLOR_OFF);
 				 
 			});
+			*/
 		}
 		
 		num[0].get(GUIButton.class).setText(new GUIText("START", 50, 25, Font.getFont(Font.MONOSPACED)));
@@ -62,8 +63,6 @@ public class MainMenu implements GameState {
 		((GUIButton) num[3].get(GUIButton.class)).setOnClick((sst) -> {
 			Game.stop();
 		});
-		
-		
 	} 
 	
 	

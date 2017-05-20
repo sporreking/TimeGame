@@ -1,5 +1,6 @@
 package game.level.resources;
 
+import game.TexLib;
 import game.level.Level;
 import game.level.player.Hud;
 import sk.entity.Entity;
@@ -41,7 +42,7 @@ public class Battery extends Entity {
 		level.worlds[layer].addBody(body);
 		
 		renderer = new Renderer(Mesh.QUAD);
-		renderer.setTexture(new Texture("res/texture/temp.png"));
+		renderer.setTexture(TexLib.T_BATTERY);
 		
 		add(transform);
 		add(body);

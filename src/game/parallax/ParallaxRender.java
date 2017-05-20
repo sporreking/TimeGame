@@ -1,5 +1,7 @@
 package game.parallax;
 
+import game.TG;
+import game.level.Level;
 import game.shaders.GameShaders;
 import sk.gfx.Camera;
 import sk.gfx.Mesh;
@@ -45,9 +47,12 @@ public class ParallaxRender extends Renderer {
 		GameShaders.PARALLAX_SHADER.send1i("t_sampler", 0);
 
 		Vector2f p = camera.position.clone().scale(-parallax);
+		
+		Level l = TG.GS_PLAYING.getCurrentLevel();
+		
 		GameShaders.PARALLAX_SHADER.send2f("parallax", p.x, 
 				lockY ? 
-				camera.position.y - camera.scale.y + .5f
+				Math.min(l.data[l.currentSheet].chunksY - 1f, camera.position.y - camera.scale.y + .5f)
 				: p.y * (invertY ? -1 : 1));
 		
 		super.getTexture().bind(0);

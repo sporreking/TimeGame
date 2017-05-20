@@ -28,7 +28,7 @@ public class Playing implements GameState {
 	private Level level;
 	
 	//TODO: Change to dynamic choice
-	public String chapter = "1";
+	public String chapter = "Chapter 1";
 	
 	private ArrayList<String> levels;
 	public int current;
@@ -37,8 +37,6 @@ public class Playing implements GameState {
 	public void init() {
 		Camera.DEFAULT.scale.x = .75f;
 		Camera.DEFAULT.scale.y = .75f;
-		
-		AudioManager.playSource(0, 1, 1, AudioLib.M_BG, true);
 		
 		setupChapter();
 		
@@ -84,7 +82,8 @@ public class Playing implements GameState {
 		
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_ESCAPE))
-			GameStateManager.enterState(TG.GS_MAIN_MENU);
+			Game.stop();
+		//GameStateManager.enterState(TG.GS_MAIN_MENU);
 		
 		if (Keyboard.pressed(GLFW.GLFW_KEY_R)) {
 			playLevel();
