@@ -1,3 +1,4 @@
+# P1
 p1_jump J 0 A
 p1_jump J 0 LEFTSTICK_UP
 p1_jump J 0 DPAD_UP
@@ -16,6 +17,7 @@ p1_pickup K E
 p1_switch J 0 RIGHT_BUMPER
 p1_switch K Q
 
+# P2
 p2_jump J 1 A
 p2_jump J 1 LEFTSTICK_UP
 p2_jump J 1 DPAD_UP
@@ -26,6 +28,7 @@ p2_left K LEFT
 p2_right J 1 LEFTSTICK_RIGHT
 p2_right J 1 DPAD_RIGHT
 p2_right K RIGHT
+p1_down K DOWN
 p2_down J 1 LEFTSTICK_DOWN
 p2_down J 1 DPAD_DOWN
 p2_pickup J 1 LEFT_BUMPER
@@ -33,7 +36,40 @@ p2_pickup K .
 p2_switch J 1 RIGHT_BUMPER
 p2_switch K ,
 
+# General
 restart K R
 restart J 0 Y
 restart J 1 Y
 
+# GUI stuff...
+exit K ESCAPE
+exit J 0 B
+exit J 1 B
+
+select K ENTER
+select J 0 A
+select J 1 A
+
+up K UP
+up J 0 DPAD_UP
+up J 0 LEFTSTICK_UP
+up J 1 DPAD_UP
+up J 1 LEFTSTICK_UP
+
+down K DOWN
+down J 0 DPAD_DOWN
+down J 0 LEFTSTICK_DOWN
+down J 1 DPAD_DOWN
+down J 1 LEFTSTICK_DOWN
+
+right K RIGHT
+right J 0 DPAD_RIGHT
+right J 0 LEFTSTICK_RIGHT
+right J 1 DPAD_RIGHT
+right J 1 LEFTSTICK_RIGHT
+
+left K LEFT
+left J 0 DPAD_LEFT
+left J 0 LEFTSTICK_LEFT
+left J 1 DPAD_LEFT
+left J 1 LEFTSTICK_LEFT

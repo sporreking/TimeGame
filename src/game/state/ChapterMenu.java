@@ -107,8 +107,8 @@ public class ChapterMenu implements GameState {
 				e.get(SST.class).store("chapter", caption);
 				page.add(e);
 				
-				b.setOnClick((sst) -> {
-					TG.GS_PLAYING.chapter = (String) sst.get("chapter");
+				b.setOnClick((element) -> {
+					TG.GS_PLAYING.chapter = (String) element.getParent().get(SST.class).get("chapter");
 					GameStateManager.enterState(TG.GS_PLAYING);
 				});
 			}

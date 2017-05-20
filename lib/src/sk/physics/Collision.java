@@ -70,8 +70,8 @@ public class Collision {
 	 * @param b the second array.
 	 * @return the combined array.
 	 */
-	public static Vector2f[] fuseArrays(Vector2f[] a, Vector2f[] b) {
-		Vector2f[] out = new Vector2f[a.length + b.length];
+	public static T[] fuseArrays<T>(T[] a, T[] b) {
+		T[] out = new T[a.length + b.length];
 		System.arraycopy(a, 0, out, 0, a.length);
 		System.arraycopy(b, 0, out, a.length, b.length);
 		return out;

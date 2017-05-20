@@ -15,7 +15,7 @@ public class Main {
 		gp.height = 600;
 		gp.startState = TG.GS_MAIN_MENU;
 		gp.fullscreen = false;
-		gp.resizable = true;
+		gp.resizable = false;
 		gp.title = "Time Game";
 		gp.vSync = true;
 		gp.inputMapPath = "res/input.map";
