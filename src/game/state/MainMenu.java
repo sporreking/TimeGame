@@ -6,12 +6,14 @@ import java.util.Random;
 import game.TG;
 import sk.audio.AudioManager;
 import sk.entity.Entity;
+import sk.entity.component.AABB;
 import sk.game.Game;
 import sk.game.Time;
 import sk.game.Window;
 import sk.gamestate.GameState;
 import sk.gamestate.GameStateManager;
 import sk.gfx.Texture;
+import sk.gfx.Transform;
 import sk.gfx.gui.GUIButton;
 import sk.gfx.gui.GUIElement;
 import sk.gfx.gui.GUIFader;
@@ -19,6 +21,7 @@ import sk.gfx.gui.GUIText;
 import sk.gfx.gui.GUITextPosition;
 import sk.sst.SST;
 import sk.util.io.InputManager;
+import sk.util.io.Mouse;
 import sk.util.vector.Vector2f;
 import sk.util.vector.Vector4f;
 
@@ -72,8 +75,8 @@ public class MainMenu implements GameState {
 	
 	private Entity buttons[];
 	private GUIElement logo;
-	private GUIFader globalVolume;
-	private GUIFader tempVolume;
+	private Entity globalVolume;
+	private Entity tempVolume;
 	
 	private GUIElement credits;
 	
@@ -184,19 +187,19 @@ public class MainMenu implements GameState {
 		
 		buttons = generateButtons(0, 0, 0, -50, WIDTH, "Start", "Credits", "Settings", "Exit");
 		
-		((GUIButton) buttons[0].get(GUIButton.class)).setOnClick((sst) -> {
+		((GUIButton) buttons[0].get(GUIButton.class)).setOnRelease((sst) -> {
 			GameStateManager.enterState(TG.GS_CHAPTER_MENU);
 		});
 
-		((GUIButton) buttons[1].get(GUIButton.class)).setOnClick((sst) -> {
+		((GUIButton) buttons[1].get(GUIButton.class)).setOnRelease((sst) -> {
 			enterCredits();
 		});
 
-		((GUIButton) buttons[2].get(GUIButton.class)).setOnClick((sst) -> {
+		((GUIButton) buttons[2].get(GUIButton.class)).setOnRelease((sst) -> {
 			enterSettings();
 		});
 
-		((GUIButton) buttons[3].get(GUIButton.class)).setOnClick((sst) -> {
+		((GUIButton) buttons[3].get(GUIButton.class)).setOnRelease((sst) -> {
 			Game.stop();
 		});
 		
@@ -215,7 +218,7 @@ public class MainMenu implements GameState {
 		buttons = new Entity[1];
 		buttons[0] = generateButton(0, -1, 0, BUTTON_SPACING, WIDTH, "Back");
 		
-		buttons[0].get(GUIButton.class).setOnClick((sst) -> {
+		buttons[0].get(GUIButton.class).setOnRelease((sst) -> {
 			enterMain();
 		});
 		
@@ -269,7 +272,7 @@ public class MainMenu implements GameState {
 			
 			GUIButton button = item.get(GUIButton.class);
 			button.getText().setPosition(GUITextPosition.TOP);
-			button.setOnClick((element) -> {
+			button.setOnRelease((element) -> {
 				int w = (int) element.getParent().get(SST.class).get("w");
 				int h = (int) element.getParent().get(SST.class).get("h");
 				
@@ -297,7 +300,7 @@ public class MainMenu implements GameState {
 			b.getText().setPosition(GUITextPosition.LEFT);
 		}
 		
-		buttons[0].get(GUIButton.class).setOnClick((sst) -> {
+		buttons[0].get(GUIButton.class).setOnRelease((sst) -> {
 			if (!Window.isFullscreen()) {
 				Window.enterBorderless();
 			} else {
@@ -305,13 +308,13 @@ public class MainMenu implements GameState {
 			}
 		});
 		
-		buttons[1].get(GUIButton.class).setOnClick((sst) -> {
+		buttons[1].get(GUIButton.class).setOnRelease((sst) -> {
 		});
 		
-		buttons[2].get(GUIButton.class).setOnClick((sst) -> {
+		buttons[2].get(GUIButton.class).setOnRelease((sst) -> {
 		});
 		
-		buttons[3].get(GUIButton.class).setOnClick((sst) -> {
+		buttons[3].get(GUIButton.class).setOnRelease((sst) -> {
 			enterMain();
 		});
 		
@@ -324,10 +327,12 @@ public class MainMenu implements GameState {
 	@Override
 	public void init() {
 		// Only load the logo once
-		LOGO = new Texture(Game.properties.icon);
-		logo = new GUIElement(0, 1, 0, -150, 300, 300);
-		logo.setText(new GUIText("", 0, 0, MENU_FONT));
-		logo.setTexture(LOGO);
+		if (LOGO == null) {
+			LOGO = new Texture(Game.properties.icon);
+			logo = new GUIElement(0, 1, 0, -150, 300, 300);
+			logo.setText(new GUIText("", 0, 0, MENU_FONT));
+			logo.setTexture(LOGO);
+		}
 		
 		int CREDITS_HEIGHT = 500;
 		int CREDITS_WIDTH = 600;
@@ -340,12 +345,16 @@ public class MainMenu implements GameState {
 		Texture on   = new Texture("res/texture/on.png");
 		Texture off  = new Texture("res/texture/off.png");
 		
-		globalVolume = new GUIFader(-1, 0, (int) (2.5 * WIDTH) + 10, (int) (.5 * (BUTTON_SPACING)), WIDTH, HEIGHT,
-				mask, on, off);
+		globalVolume = new Entity();
+		globalVolume.add(new GUIFader(-1, 0, (int) (2.5 * WIDTH) + 10, (int) (.5 * (BUTTON_SPACING)), WIDTH, HEIGHT,
+				mask, on, off));
+		Transform t = new Transform();
+		globalVolume.add(new AABB(WIDTH, HEIGHT, new Transform()));
 		
-		
-		tempVolume = new GUIFader(-1, 0, (int) (2.5 * WIDTH) + 10, (int) -(.5 * (BUTTON_SPACING)), WIDTH, HEIGHT,
-				mask, on, off);
+		tempVolume = new Entity();
+		tempVolume.add(new GUIFader(-1, 0, (int) (2.5 * WIDTH) + 10, (int) -(.5 * (BUTTON_SPACING)), WIDTH, HEIGHT,
+				mask, on, off));
+		tempVolume.add(new AABB(WIDTH, HEIGHT));
 		
 		up = new KeyRepeateTimer("up");
 		down = new KeyRepeateTimer("down");
@@ -458,11 +467,33 @@ public class MainMenu implements GameState {
 					hover(highlighted);
 				}
 			}
+			if (Mouse.down(0)) {
+			
+				
+				Vector2f mousePos = Mouse.getPosition();
+				mousePos.x -= Window.getWidth() / 2;
+				mousePos.y -= Window.getHeight() / 2;
+				AABB aabb = globalVolume.get(AABB.class);
+				if (aabb.contains(mousePos)) {
+					float newGain = (mousePos.x - aabb.getMin().x);
+					newGain /= aabb.getWidth();
+					AudioManager.setGlobalLoopGain(newGain * MAX_GAIN); 
+				} else { 
+					aabb = tempVolume.get(AABB.class);
+					if (aabb.contains(mousePos)) {
+						float newGain = (mousePos.x - aabb.getMin().x);
+						newGain /= aabb.getWidth();
+						AudioManager.setGlobalTempGain(newGain * MAX_GAIN);
+					}
+				}
+			}
 		}
 		
+		System.out.println("DEBUG ME!!!!! MainMenu.java:479");
+		
 		// @SaveTheFrames: This doesn't need to go here... but it is here now.
-		globalVolume.setThreshold(AudioManager.getGlobalLoopGain() / MAX_GAIN);
-		tempVolume.setThreshold(AudioManager.getGlobalTempGain() / MAX_GAIN);
+		globalVolume.get(GUIFader.class).setThreshold(AudioManager.getGlobalLoopGain() / MAX_GAIN);
+		tempVolume  .get(GUIFader.class).setThreshold(AudioManager.getGlobalTempGain() / MAX_GAIN);
 	}
 	
 	private void unhover() {
@@ -479,7 +510,7 @@ public class MainMenu implements GameState {
 	
 	private void click(int id) {
 		if (0 <= id && id < buttons.length) {
-			buttons[id].get(GUIButton.class).click();
+			buttons[id].get(GUIButton.class).release();
 		}
 	}
 	
