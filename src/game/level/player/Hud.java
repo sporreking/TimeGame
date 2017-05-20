@@ -2,6 +2,7 @@ package game.level.player;
 
 import java.awt.Font;
 
+import game.TexLib;
 import game.level.Level;
 import sk.entity.Entity;
 import sk.game.Time;
@@ -37,6 +38,8 @@ public class Hud extends Entity {
 	
 	Level level;
 	
+	public GUIElement switchDisplay;
+	
 	public Hud(Level level) {
 		this.level = level;
 		score = 0;
@@ -71,6 +74,9 @@ public class Hud extends Entity {
 		element.setText(restartText);
 		
 		restartLabel.add(element);
+		
+		switchDisplay = new GUIElement(1, 1, (int) (-54 * GUI_SCALE * BAR_SCALE), (int) (-6 * GUI_SCALE * BAR_SCALE), (int) (8 * GUI_SCALE * BAR_SCALE), (int) (8 * GUI_SCALE * BAR_SCALE));
+		switchDisplay.setTexture(TexLib.T_P2_FACE);
 	}
 	
 	public static void changeEnergy(float diff) {
@@ -125,6 +131,7 @@ public class Hud extends Entity {
 			restartLabel.draw();
 		}
 		energyBar.draw();
+		switchDisplay.draw();
 	}
 	
 	public static final Texture T_MASK = new Texture("res/texture/hud/bar_mask.png");

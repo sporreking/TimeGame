@@ -8,6 +8,7 @@ import org.lwjgl.glfw.GLFW;
 
 import game.AudioLib;
 import game.TG;
+import game.TexLib;
 import game.level.enemy.Enemy;
 import game.level.player.PlayerLogic;
 import game.level.player.Hud;
@@ -362,6 +363,8 @@ public class Level extends Node {
 		
 		player1.switchTime();
 		player2.switchTime();
+		
+		hud.switchDisplay.setTexture(player1.get(PlayerLogic.class).canSwitch() ? TexLib.T_P1_FACE : TexLib.T_P2_FACE);
 		
 		AudioLib.playLevelMusic(currentSheet);
 		AudioManager.play(1, 1, false, AudioLib.S_TIME_SWITCH);

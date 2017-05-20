@@ -10,6 +10,7 @@ import sk.util.vector.Vector2f;
 import org.lwjgl.glfw.GLFW;
 
 import game.AudioLib;
+import game.TexLib;
 import game.level.Level;
 import game.level.resources.Key.KeyLauncher;
 import game.level.resources.Launchable;
@@ -459,6 +460,10 @@ public class PlayerLogic extends Launchable {
 		} catch (Exception e) {
 			return false;
 		}
+	}
+	
+	public boolean canSwitch() {
+		return switchTurn;
 	}
 	
 	@Override
