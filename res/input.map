@@ -45,6 +45,10 @@ restart K R
 restart J 0 Y
 restart J 1 Y
 
+menu K ESCAPE
+menu J 0 START
+menu J 1 START
+
 # GUI stuff...
 exit K ESCAPE
 exit J 0 B

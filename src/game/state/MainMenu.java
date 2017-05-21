@@ -1,9 +1,12 @@
 package game.state;
 
 import java.awt.Font;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Random;
 
 import game.TG;
+import sk.audio.Audio;
 import sk.audio.AudioManager;
 import sk.entity.Entity;
 import sk.entity.component.AABB;
@@ -12,8 +15,8 @@ import sk.game.Time;
 import sk.game.Window;
 import sk.gamestate.GameState;
 import sk.gamestate.GameStateManager;
+import sk.gfx.Camera;
 import sk.gfx.Texture;
-import sk.gfx.Transform;
 import sk.gfx.gui.GUIButton;
 import sk.gfx.gui.GUIElement;
 import sk.gfx.gui.GUIFader;
@@ -31,6 +34,7 @@ public class MainMenu implements GameState {
 		MAIN_MENU,
 		SETTINGS,
 		CREDITS,
+		CHAPTER,
 	}
 	
 	static class KeyRepeateTimer {
@@ -85,6 +89,8 @@ public class MainMenu implements GameState {
 	private MenuState state;
 	
 	private int highlighted = -1;
+	
+	private int display = 0;
 
 	public static final String GENERATE_CREDITS() {
 		String text =
@@ -130,6 +136,8 @@ public class MainMenu implements GameState {
 		
 		return shuffled;
 	}
+	
+	public static Audio TEST_SOUND;
 	
 	public static final float MAX_GAIN = 2;
 
@@ -183,20 +191,38 @@ public class MainMenu implements GameState {
 	}
 	
 	public void enterMain() {
+		if (highlighted != -1) {
+			switch (state) {
+			case CHAPTER:
+				highlighted = 0;
+				break;
+			case CREDITS:
+				highlighted = 2;
+				break;
+			case SETTINGS:
+				highlighted = 1;
+				break;
+			default:
+				break;
+	
+			}
+		}
+		
 		state = MenuState.MAIN_MENU;
 		
-		buttons = generateButtons(0, 0, 0, -50, WIDTH, "Start", "Credits", "Settings", "Exit");
+		buttons = generateButtons(0, 0, 0, -50, WIDTH, "Start", "Settings", "Credits", "Exit");
 		
 		((GUIButton) buttons[0].get(GUIButton.class)).setOnRelease((sst) -> {
-			GameStateManager.enterState(TG.GS_CHAPTER_MENU);
+			//GameStateManager.enterState(TG.GS_CHAPTER_MENU);
+			enterChapter();
 		});
-
+		
 		((GUIButton) buttons[1].get(GUIButton.class)).setOnRelease((sst) -> {
-			enterCredits();
+			enterSettings();
 		});
 
 		((GUIButton) buttons[2].get(GUIButton.class)).setOnRelease((sst) -> {
-			enterSettings();
+			enterCredits();
 		});
 
 		((GUIButton) buttons[3].get(GUIButton.class)).setOnRelease((sst) -> {
@@ -204,7 +230,6 @@ public class MainMenu implements GameState {
 		});
 		
 		if (highlighted != -1) {
-			highlighted = 0;
 			hover(highlighted);
 		}
 	}
@@ -231,15 +256,12 @@ public class MainMenu implements GameState {
 	public void enterSettings() {
 		state = MenuState.SETTINGS;
 		
-		buttons = generateButtons(-1, 0, WIDTH, (int) (1.5 * (BUTTON_SPACING)), WIDTH * 2, "Fullscreen", "SFX Volume", "Music Volume", "Back");
+		buttons = generateButtons(-1, 0, WIDTH, (int) (1.5 * (BUTTON_SPACING)), WIDTH * 2, "Fullscreen", "Music Volume", "SFX Volume", "Back");
 		
 		String[] resolutions = 
 			{
 				"Resolutions",
-				"700x525",
 				"800x600",
-				"848x480",
-				"960x540",
 				"1280x720",
 				"1920x1080"
 			};
@@ -302,7 +324,9 @@ public class MainMenu implements GameState {
 		
 		buttons[0].get(GUIButton.class).setOnRelease((sst) -> {
 			if (!Window.isFullscreen()) {
-				Window.enterBorderless();
+				Window.enterBorderless(display);
+				display++;
+				display %= Window.getNumberOfDisplays();
 			} else {
 				Window.enterFloating(0, 0, Game.properties.width, Game.properties.height);
 			}
@@ -324,8 +348,50 @@ public class MainMenu implements GameState {
 		}
 	}
 
+	void enterChapter() {
+		state = MenuState.CHAPTER;
+		ArrayList<String> chapters = new ArrayList<>();
+
+		String BASE_FOLDER = "res/level/";
+		File base = new File(BASE_FOLDER);
+
+		// Makesure these are directories.
+		for (File f : base.listFiles((current, name) -> {
+			return new File(current, name).isDirectory(); })) {
+			chapters.add(f.getName());
+		}
+
+		// Hack in the back button, we can make the buttons from this list.
+		chapters.add("Back");
+		
+		String[] captions = new String[chapters.size()];
+		chapters.toArray(captions);
+		
+		buttons = generateButtons(0, 0, 0, (int) (BUTTON_SPACING * captions.length / 2.0f), 2 * WIDTH, captions);
+		
+		// We don't want to set the back button twice, that's a waste of CPU cycles
+		for (int i = 0; i < buttons.length - 1; i++) {
+			buttons[i].get(GUIButton.class).setOnRelease((element) -> {
+				String caption = element.getText().getText();
+				TG.GS_PLAYING.chapter = caption;
+				GameStateManager.enterState(TG.GS_PLAYING);
+			});
+		}
+
+		buttons[buttons.length - 1].get(GUIButton.class).setOnRelease((element) -> {
+			enterMain();
+		});
+		
+		if (highlighted != -1) {
+			highlighted = 0;
+			hover(highlighted);
+		}
+	}
+
 	@Override
 	public void init() {
+		TEST_SOUND = new Audio("res/audio/select.wav");
+		
 		// Only load the logo once
 		if (LOGO == null) {
 			LOGO = new Texture(Game.properties.icon);
@@ -348,13 +414,12 @@ public class MainMenu implements GameState {
 		globalVolume = new Entity();
 		globalVolume.add(new GUIFader(-1, 0, (int) (2.5 * WIDTH) + 10, (int) (.5 * (BUTTON_SPACING)), WIDTH, HEIGHT,
 				mask, on, off));
-		Transform t = new Transform();
-		globalVolume.add(new AABB(WIDTH, HEIGHT, new Transform()));
+		globalVolume.add(new AABB(WIDTH, HEIGHT, globalVolume.get(GUIFader.class).transform));
 		
 		tempVolume = new Entity();
 		tempVolume.add(new GUIFader(-1, 0, (int) (2.5 * WIDTH) + 10, (int) -(.5 * (BUTTON_SPACING)), WIDTH, HEIGHT,
 				mask, on, off));
-		tempVolume.add(new AABB(WIDTH, HEIGHT));
+		tempVolume.add(new AABB(WIDTH, HEIGHT, tempVolume.get(GUIFader.class).transform));
 		
 		up = new KeyRepeateTimer("up");
 		down = new KeyRepeateTimer("down");
@@ -363,8 +428,20 @@ public class MainMenu implements GameState {
 		enterMain();
 	}
 
+	float timer = 0;
+	int frames = 0;
+	
 	@Override
 	public void update(double delta) {
+		
+		frames++;
+		timer += delta;
+		while (timer > 1) {
+			timer -= 1;
+			System.out.println("DT: " + frames / 1);
+			frames = 0;
+		}
+		
 		for (int i = 0; i < buttons.length; i++) {
 			buttons[i].update(delta);
 		}
@@ -386,7 +463,7 @@ public class MainMenu implements GameState {
 					highlighted -= buttons.length;
 				}
 				highlighted %= buttons.length;
-			} while (buttons[highlighted].get(GUIButton.class).getOnClick() == null);
+			} while (buttons[highlighted].get(GUIButton.class).getOnRelease() == null);
 			
 			hover(highlighted);
 		}
@@ -402,7 +479,7 @@ public class MainMenu implements GameState {
 					highlighted += buttons.length;
 				}
 				highlighted %= buttons.length;
-			} while (buttons[highlighted].get(GUIButton.class).getOnClick() == null);
+			} while (buttons[highlighted].get(GUIButton.class).getOnRelease() == null);
 			
 			hover(highlighted);
 		}
@@ -421,6 +498,8 @@ public class MainMenu implements GameState {
 						float newGain = AudioManager.getGlobalTempGain() - 0.05f;
 						newGain = Math.max(0, Math.min(MAX_GAIN, newGain));
 						AudioManager.setGlobalTempGain(newGain);
+						
+						AudioManager.play(1, 1, true, TEST_SOUND);
 					}
 				} else {
 					if (highlighted < 2) {
@@ -451,6 +530,8 @@ public class MainMenu implements GameState {
 						float newGain = AudioManager.getGlobalTempGain() + 0.05f;
 						newGain = Math.max(0, Math.min(MAX_GAIN, newGain));
 						AudioManager.setGlobalTempGain(newGain);
+						
+						AudioManager.play(1, 1, true, TEST_SOUND);
 					}
 				} else {
 					
@@ -468,28 +549,32 @@ public class MainMenu implements GameState {
 				}
 			}
 			if (Mouse.down(0)) {
-			
-				
-				Vector2f mousePos = Mouse.getPosition();
-				mousePos.x -= Window.getWidth() / 2;
-				mousePos.y -= Window.getHeight() / 2;
+				Vector2f mousePos = Mouse.projectPosition(Camera.GUI.getProjection());
 				AABB aabb = globalVolume.get(AABB.class);
-				if (aabb.contains(mousePos)) {
+				if (aabb.getMin().y < mousePos.y && mousePos.y < aabb.getMax().y) {
 					float newGain = (mousePos.x - aabb.getMin().x);
+
 					newGain /= aabb.getWidth();
-					AudioManager.setGlobalLoopGain(newGain * MAX_GAIN); 
+					if (-0.1f < newGain && newGain < 1.1f) {
+						newGain = Math.max(0, Math.min(newGain, 1));
+						AudioManager.setGlobalLoopGain(newGain * MAX_GAIN);
+					}
 				} else { 
 					aabb = tempVolume.get(AABB.class);
-					if (aabb.contains(mousePos)) {
+					if (aabb.getMin().y < mousePos.y && mousePos.y < aabb.getMax().y) {
 						float newGain = (mousePos.x - aabb.getMin().x);
 						newGain /= aabb.getWidth();
-						AudioManager.setGlobalTempGain(newGain * MAX_GAIN);
+						if (-0.1f < newGain && newGain < 1.1f) {
+							newGain = Math.max(0, Math.min(newGain, 1));
+							AudioManager.setGlobalTempGain(newGain * MAX_GAIN);
+
+							if (Mouse.pressed(0))
+								AudioManager.play(1, 1, true, TEST_SOUND);
+						}
 					}
 				}
 			}
 		}
-		
-		System.out.println("DEBUG ME!!!!! MainMenu.java:479");
 		
 		// @SaveTheFrames: This doesn't need to go here... but it is here now.
 		globalVolume.get(GUIFader.class).setThreshold(AudioManager.getGlobalLoopGain() / MAX_GAIN);
@@ -526,6 +611,10 @@ public class MainMenu implements GameState {
 		case SETTINGS:
 			globalVolume.draw();
 			tempVolume.draw();
+			break;
+		case CHAPTER:
+			break;
+		default:
 			break;
 		}
 
