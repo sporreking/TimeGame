@@ -5,6 +5,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 
+import com.sun.xml.internal.txw2.output.DumpSerializer;
+
+import game.Main;
 import game.TG;
 import sk.audio.Audio;
 import sk.audio.AudioManager;
@@ -191,6 +194,8 @@ public class MainMenu implements GameState {
 	}
 	
 	public void enterMain() {
+		Main.dumpSave();
+		
 		if (highlighted != -1) {
 			switch (state) {
 			case CHAPTER:
@@ -433,14 +438,6 @@ public class MainMenu implements GameState {
 	
 	@Override
 	public void update(double delta) {
-		
-		frames++;
-		timer += delta;
-		while (timer > 1) {
-			timer -= 1;
-			System.out.println("DT: " + frames / 1);
-			frames = 0;
-		}
 		
 		for (int i = 0; i < buttons.length; i++) {
 			buttons[i].update(delta);

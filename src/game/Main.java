@@ -11,6 +11,7 @@ import sk.util.vector.Vector4f;
 
 public class Main {
 	
+	private static String saveLocation = "res/settings";
 	public static final void main(String[] args) {
 		
 		GameProperties gp = new GameProperties();
@@ -25,7 +26,6 @@ public class Main {
 		gp.inputMapPath = "res/input.map";
 		gp.icon = "res/texture/logo.png";
 		
-		String saveLocation = "res/settings";
 		
 		// Try to load in the settings
 		try {
@@ -47,6 +47,12 @@ public class Main {
 		
 		GameShaders.destroyShaders();
 
+		dumpSave();
+		
+		System.out.println("Game successfully exited");
+	}
+	
+	public static final void dumpSave() {
 		// Save out the settings
 		SST save = new SST();
 		save.store("w", Window.getWidth());
@@ -55,13 +61,11 @@ public class Main {
 		save.store("display", Window.getCurrentDisplay());
 		save.store("glg", AudioManager.getGlobalLoopGain());
 		save.store("gtg", AudioManager.getGlobalTempGain());
-		
+
 		try {
 			save.dump(saveLocation);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		System.out.println("Game successfully exited");
 	}
 }
