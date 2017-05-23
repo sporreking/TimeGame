@@ -126,7 +126,6 @@ public class Hud extends Entity {
 	
 	@Override
 	public void draw() {
-//		scoreLabel.draw();
 		if (restartText.getColor().w != 0) {
 			restartLabel.draw();
 		}
@@ -135,7 +134,7 @@ public class Hud extends Entity {
 	}
 	
 	public static final Texture T_MASK = new Texture("res/texture/hud/bar_mask.png");
-	public static final Texture T_FULL = new Texture("res/texture/hud/bar_full.png");
-	public static final Texture T_EMPTY = new Texture("res/texture/hud/bar_empty.png");
+	public static final Texture T_FULL = new Texture("res/texture/hud/timebar_full.png");
+	public static final Texture T_EMPTY = new Texture("res/texture/hud/timebar_empty.png");
 	
 }
