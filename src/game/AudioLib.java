@@ -15,6 +15,7 @@ public class AudioLib {
 	public static final void playLevelMusic(int i) {
 		if(i == current)
 			return;
+
 		AudioManager.pauseSource(1f, i == 0 ? 2 : 1);
 		AudioManager.playSource(i == 0 ? 1 : 2, 1, 1, 1f, i == 0 ? M_THING : M_CALM, true);
 		current = i;

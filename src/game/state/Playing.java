@@ -81,13 +81,12 @@ public class Playing implements GameState {
 	public void update(double delta) {
 		level.update(delta);
 		
-		
-		if (Keyboard.pressed(GLFW.GLFW_KEY_ESCAPE))
-			Game.stop();
-		//GameStateManager.enterState(TG.GS_MAIN_MENU);
-		
 		if (InputManager.pressed("restart")) {
 			playLevel();
+		}
+		
+		if (InputManager.pressed("menu")) {
+			GameStateManager.enterState(TG.GS_MAIN_MENU);
 		}
 	}
 	
