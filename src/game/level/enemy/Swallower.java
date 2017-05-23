@@ -2,20 +2,15 @@ package game.level.enemy;
 
 import java.util.Random;
 
+import game.level.Level;
 import game.level.player.Player;
 import sk.entity.Component;
-import sk.entity.Entity;
-import sk.game.Time;
 import sk.gfx.Animation;
-import sk.gfx.Mesh;
-import sk.gfx.Renderer;
 import sk.gfx.SpriteSheet;
-import sk.gfx.Texture;
 import sk.gfx.Transform;
 import sk.physics.Body;
 import sk.physics.Shape;
 import sk.util.vector.Vector2f;
-import sun.launcher.resources.launcher;
 
 public class Swallower extends Component {
 	
@@ -56,7 +51,7 @@ public class Swallower extends Component {
 		
 		Body body = new Body(Shape.GEN_QUAD(0.25f))
 			.setTrigger(true).setDynamic(false)
-			.setLayer((short) (e.l.P1_LAYER | e.l.P2_LAYER));
+			.setLayer((short) (Level.P1_LAYER | Level.P2_LAYER));
 		
 		e.add(body);
 		

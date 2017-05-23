@@ -6,13 +6,11 @@ import java.nio.ByteBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
-import sk.entity.Entity;
 import sk.gfx.Camera;
 import sk.gfx.FontTexture;
 import sk.gfx.Mesh;
 import sk.gfx.Renderer;
 import sk.gfx.Transform;
-import sk.gfx.gui.GUIText;
 import sk.util.vector.Vector2f;
 import sk.util.vector.Vector3f;
 

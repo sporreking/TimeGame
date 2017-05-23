@@ -2,12 +2,9 @@ package game.state;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 
 import org.lwjgl.glfw.GLFW;
-
-import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
 
 import game.TG;
 import game.level.Level;

@@ -26,7 +26,6 @@ import sk.game.Time;
 import sk.game.Window;
 import sk.gfx.Camera;
 import sk.gfx.Mesh;
-import sk.gfx.Renderer;
 import sk.gfx.SpriteSheet;
 import sk.gfx.Texture;
 import sk.gfx.Transform;
@@ -34,10 +33,8 @@ import sk.gfx.Vertex2D;
 import sk.physics.Body;
 import sk.physics.Shape;
 import sk.physics.World;
-import sk.util.io.InputManager;
 import sk.util.vector.Vector2f;
 import sk.util.vector.Vector3f;
-import sk.util.vector.Vector4f;
 
 public class Level extends Node {
 	
