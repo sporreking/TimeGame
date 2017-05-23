@@ -22,7 +22,7 @@ public class Main {
 		gp.fullscreen = false;
 		gp.resizable = false;
 		gp.title = "Time Game";
-		gp.vSync = false;
+		gp.vSync = true;
 		gp.inputMapPath = "res/input.map";
 		gp.icon = "res/texture/logo.png";
 		
