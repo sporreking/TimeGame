@@ -103,12 +103,12 @@ public class ChapterMenu implements GameState {
 				
 				GUIButton b = new GUIButton(0, 0, x, y, SIZE, SIZE);
 				b.setText(new GUIText(caption, SIZE, SIZE, Font.getFont(Font.MONOSPACED)));
-				Entity e = new Entity().add(b);
+				Entity e = new Entity().add(b).add(new SST());
 				e.get(SST.class).store("chapter", caption);
 				page.add(e);
 				
-				b.setOnClick((sst) -> {
-					TG.GS_PLAYING.chapter = (String) sst.get("chapter");
+				b.setOnClick((element) -> {
+					TG.GS_PLAYING.chapter = (String) element.getParent().get(SST.class).get("chapter");
 					GameStateManager.enterState(TG.GS_PLAYING);
 				});
 			}
